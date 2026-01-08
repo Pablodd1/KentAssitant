@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Case {
+  id        String   @id @default(uuid())
+  caseCode  String   @unique // e.g. KMD-2024-001
+  status    String   @default("DRAFT") // DRAFT, ANALYZING, COMPLETED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  files           File[]
+  transcripts     Transcript[]
+  analysisRuns    AnalysisRun[]
+}
+
+model File {
+  id          String   @id @default(uuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id])
+  filename    String
+  mimeType    String
+  size        Int
+  storagePath String
+  status      String   @default("UPLOADED") // UPLOADED, EXTRACTING, READY, ERROR
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  artifacts   ExtractionArtifact[]
+}
+
+model ExtractionArtifact {
+  id        String   @id @default(uuid())
+  fileId    String
+  file      File     @relation(fields: [fileId], references: [id])
+  type      String   // TEXT, OCR, TRANSCRIPT
+  content   String   @db.Text
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transcript {
+  id        String   @id @default(uuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id])
+  source    String   // LIVE_MIC, FILE_UPLOAD
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model AnalysisRun {
+  id          String   @id @default(uuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id])
+  modelName   String
+  outputJson  String   @db.Text // Storing huge JSON
+  createdAt   DateTime @default(now())
+}
