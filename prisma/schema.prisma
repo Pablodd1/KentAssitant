@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -47,7 +47,7 @@ model ExtractionArtifact {
   fileId    String
   file      File     @relation(fields: [fileId], references: [id])
   type      String   // TEXT, OCR, TRANSCRIPT
-  content   String   @db.Text
+  content   String
   status    String   @default("PENDING")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,7 +58,7 @@ model Transcript {
   caseId    String
   case      Case     @relation(fields: [caseId], references: [id])
   source    String   // LIVE_MIC, FILE_UPLOAD
-  content   String   @db.Text
+  content   String
   createdAt DateTime @default(now())
 }
 
@@ -67,6 +67,6 @@ model AnalysisRun {
   caseId      String
   case        Case     @relation(fields: [caseId], references: [id])
   modelName   String
-  outputJson  String   @db.Text // Storing huge JSON
+  outputJson  String   // Storing huge JSON
   createdAt   DateTime @default(now())
 }

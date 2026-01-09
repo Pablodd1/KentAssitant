@@ -1,22 +1,26 @@
 import fs from 'fs/promises';
 import path from 'path';
-
-// Stub imports (User should install these)
-// import pdf from 'pdf-parse';
-// import mammoth from 'mammoth';
+import { PDFParse } from 'pdf-parse';
+import mammoth from 'mammoth';
 
 export async function extractText(filePath: string, mimeType: string): Promise<string> {
     try {
-        // Simple switch
         if (mimeType.includes('pdf')) {
-            // Mock logic: reading raw buffer doesn't give text for PDF.
-            return `[PDF Content Stub] Content of ${path.basename(filePath)}. (Install 'pdf-parse' to extract real text).`;
+            const dataBuffer = await fs.readFile(filePath);
+            const parser = new PDFParse({ data: dataBuffer });
+            const result = await parser.getText();
+            await parser.destroy();
+            return result.text;
         }
         if (mimeType.includes('word') || mimeType.includes('officedocument')) {
-            return `[DOCX Content Stub] Content of ${path.basename(filePath)}. (Install 'mammoth' to extract real text).`;
+            const result = await mammoth.extractRawText({ path: filePath });
+            return result.value;
         }
         if (mimeType.startsWith('image/')) {
-            return `[OCR Stub] Image text from ${path.basename(filePath)}. (Connect OCR service).`;
+            // In a real live deployment with Gemini 1.5 Pro, we might send the image directly to the model.
+            // For now, since we don't have Tesseract or a connected OCR service configured, we return a placeholder
+            // that indicates the image is ready for processing by the multimodal AI.
+            return `[OCR Ready] Image ${path.basename(filePath)} is ready for multimodal analysis.`;
         }
         if (mimeType.startsWith('text/')) {
             return await fs.readFile(filePath, 'utf-8');
@@ -25,7 +29,7 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
         return `[Unknown File Type] ${mimeType}`;
     } catch (e) {
         console.error("Extraction error", e);
-        return "Error extracting text.";
+        return `Error extracting text: ${(e as Error).message}`;
     }
 }
 
