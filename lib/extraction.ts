@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import Tesseract from 'tesseract.js';
 
 // Stub imports (User should install these)
 // import pdf from 'pdf-parse';
@@ -16,7 +17,8 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
             return `[DOCX Content Stub] Content of ${path.basename(filePath)}. (Install 'mammoth' to extract real text).`;
         }
         if (mimeType.startsWith('image/')) {
-            return `[OCR Stub] Image text from ${path.basename(filePath)}. (Connect OCR service).`;
+            const { data: { text } } = await Tesseract.recognize(filePath, 'eng');
+            return text;
         }
         if (mimeType.startsWith('text/')) {
             return await fs.readFile(filePath, 'utf-8');
