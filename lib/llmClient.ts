@@ -5,8 +5,8 @@ export async function runClinicalAnalysis(contextJson: any): Promise<any> {
 
     if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
-    // Using gemini-1.5-pro (closest to 'Gemini 3 Pro request')
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+    // Using gemini-3-pro-preview as requested
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
