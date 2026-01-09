@@ -3,7 +3,7 @@ import path from 'path';
 
 // Stub imports (User should install these)
 // import pdf from 'pdf-parse';
-// import mammoth from 'mammoth';
+import mammoth from 'mammoth';
 
 export async function extractText(filePath: string, mimeType: string): Promise<string> {
     try {
@@ -13,7 +13,8 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
             return `[PDF Content Stub] Content of ${path.basename(filePath)}. (Install 'pdf-parse' to extract real text).`;
         }
         if (mimeType.includes('word') || mimeType.includes('officedocument')) {
-            return `[DOCX Content Stub] Content of ${path.basename(filePath)}. (Install 'mammoth' to extract real text).`;
+            const result = await mammoth.extractRawText({ path: filePath });
+            return result.value;
         }
         if (mimeType.startsWith('image/')) {
             return `[OCR Stub] Image text from ${path.basename(filePath)}. (Connect OCR service).`;
