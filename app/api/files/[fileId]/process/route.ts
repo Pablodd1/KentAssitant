@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { extractText, transcribeAudioStub } from '@/lib/extraction';
+import { extractText, transcribeAudio } from '@/lib/extraction';
 
 export async function POST(req: NextRequest, { params }: { params: { fileId: string } }) {
     try {
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { fileId: str
         await db.file.update({ where: { id: file.id }, data: { status: "EXTRACTING" } });
 
         if (file.mimeType.startsWith('audio/') || file.mimeType.startsWith('video/')) {
-            content = await transcribeAudioStub(file.storagePath);
+            content = await transcribeAudio(file.storagePath);
             type = "TRANSCRIPT";
         } else if (file.mimeType.startsWith('image/')) {
             content = await extractText(file.storagePath, file.mimeType);

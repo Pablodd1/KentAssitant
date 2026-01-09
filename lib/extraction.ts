@@ -1,5 +1,7 @@
 import fs from 'fs/promises';
+import { createReadStream } from 'fs';
 import path from 'path';
+import OpenAI from 'openai';
 
 // Stub imports (User should install these)
 // import pdf from 'pdf-parse';
@@ -29,7 +31,24 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
     }
 }
 
-export async function transcribeAudioStub(filePath: string): Promise<string> {
-    // In a real app, send to OpenAI Whisper or Google Speech API
-    return `[Transcription Stub] Audio content from ${path.basename(filePath)}. (Connect Speech-to-Text API).`;
+export async function transcribeAudio(filePath: string): Promise<string> {
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    if (!apiKey) {
+        console.warn("OPENAI_API_KEY not found, returning stub.");
+        return `[Transcription Stub] Audio content from ${path.basename(filePath)}. (Connect Speech-to-Text API).`;
+    }
+
+    try {
+        const openai = new OpenAI({ apiKey });
+        const transcription = await openai.audio.transcriptions.create({
+            file: createReadStream(filePath),
+            model: "whisper-1",
+        });
+
+        return transcription.text;
+    } catch (error) {
+        console.error("OpenAI Transcription error:", error);
+        return `[Transcription Error] Could not transcribe ${path.basename(filePath)}.`;
+    }
 }
