@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { transcribeAudioStub } from '@/lib/extraction';
+import { transcribeAudio } from '@/lib/extraction';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: { caseId: str
         const filePath = path.join(uploadDir, `voice-${Date.now()}.webm`);
         await fs.writeFile(filePath, buffer);
 
-        const text = await transcribeAudioStub(filePath);
+        const text = await transcribeAudio(filePath);
 
         const transcript = await db.transcript.create({
             data: {
