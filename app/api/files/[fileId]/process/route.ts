@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { extractText, transcribeAudioStub } from '@/lib/extraction';
+import { eventEmitter } from '@/lib/events';
 
 export async function POST(req: NextRequest, { params }: { params: { fileId: string } }) {
     try {
@@ -12,6 +13,13 @@ export async function POST(req: NextRequest, { params }: { params: { fileId: str
 
         // Update status to EXTRACTING
         await db.file.update({ where: { id: file.id }, data: { status: "EXTRACTING" } });
+
+        // Emit update event
+        eventEmitter.emit('update', {
+            caseId: file.caseId,
+            fileId: file.id,
+            status: "EXTRACTING"
+        });
 
         if (file.mimeType.startsWith('audio/') || file.mimeType.startsWith('video/')) {
             content = await transcribeAudioStub(file.storagePath);
@@ -38,6 +46,13 @@ export async function POST(req: NextRequest, { params }: { params: { fileId: str
         await db.file.update({
             where: { id: file.id },
             data: { status: "READY" }
+        });
+
+        // Emit update event
+        eventEmitter.emit('update', {
+            caseId: file.caseId,
+            fileId: file.id,
+            status: "READY"
         });
 
         return NextResponse.json({ success: true });

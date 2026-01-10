@@ -19,9 +19,16 @@ export default function UploadPage({ params }: { params: { caseId: string } }) {
 
     useEffect(() => {
         fetchCase();
-        const interval = setInterval(fetchCase, 2000); // Polling for status updates
-        return () => clearInterval(interval);
-    }, [fetchCase]);
+
+        const eventSource = new EventSource(`/api/cases/${caseId}/events`);
+        eventSource.onmessage = () => {
+            fetchCase();
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, [caseId, fetchCase]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
