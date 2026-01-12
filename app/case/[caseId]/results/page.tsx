@@ -40,6 +40,7 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
 
     useEffect(() => {
         fetchResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params.caseId]);
 
     if (loading) return (
