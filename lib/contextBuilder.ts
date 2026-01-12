@@ -19,13 +19,13 @@ export async function buildContext(caseId: string) {
     const transcriptTexts: string[] = [];
 
     // Group text
-    kase.files.forEach(f => {
-        f.artifacts.forEach(a => {
+    kase.files.forEach((f: any) => {
+        f.artifacts.forEach((a: any) => {
             extractedTexts.push(`--- File: ${f.filename} (${f.mimeType}) ---\n${a.content}`);
         });
     });
 
-    kase.transcripts.forEach(t => {
+    kase.transcripts.forEach((t: any) => {
         transcriptTexts.push(`--- Live Voice Note (${t.createdAt.toISOString()}) ---\n${t.content}`);
     });
 
