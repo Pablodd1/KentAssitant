@@ -1,22 +1,24 @@
 import fs from 'fs/promises';
 import path from 'path';
-
-// Stub imports (User should install these)
-// import pdf from 'pdf-parse';
-// import mammoth from 'mammoth';
+import pdf from 'pdf-parse';
+import mammoth from 'mammoth';
 
 export async function extractText(filePath: string, mimeType: string): Promise<string> {
     try {
-        // Simple switch
         if (mimeType.includes('pdf')) {
-            // Mock logic: reading raw buffer doesn't give text for PDF.
-            return `[PDF Content Stub] Content of ${path.basename(filePath)}. (Install 'pdf-parse' to extract real text).`;
+            const dataBuffer = await fs.readFile(filePath);
+            const data = await pdf(dataBuffer);
+            return `--- PDF Content (${path.basename(filePath)}) ---\n${data.text}`;
         }
         if (mimeType.includes('word') || mimeType.includes('officedocument')) {
-            return `[DOCX Content Stub] Content of ${path.basename(filePath)}. (Install 'mammoth' to extract real text).`;
+            const buffer = await fs.readFile(filePath);
+            const result = await mammoth.extractRawText({ buffer: buffer });
+            return `--- DOCX Content (${path.basename(filePath)}) ---\n${result.value}`;
         }
         if (mimeType.startsWith('image/')) {
-            return `[OCR Stub] Image text from ${path.basename(filePath)}. (Connect OCR service).`;
+            // In a real medical grade app, we would send this to Gemini Pro Vision directly.
+            // For now, we return a placeholder that instructs the system this file exists.
+            return `[IMAGE FILE] ${path.basename(filePath)} (Image analysis requires direct file input to LLM)`;
         }
         if (mimeType.startsWith('text/')) {
             return await fs.readFile(filePath, 'utf-8');
@@ -25,11 +27,12 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
         return `[Unknown File Type] ${mimeType}`;
     } catch (e) {
         console.error("Extraction error", e);
-        return "Error extracting text.";
+        return `Error extracting text from ${path.basename(filePath)}`;
     }
 }
 
 export async function transcribeAudioStub(filePath: string): Promise<string> {
-    // In a real app, send to OpenAI Whisper or Google Speech API
-    return `[Transcription Stub] Audio content from ${path.basename(filePath)}. (Connect Speech-to-Text API).`;
+    // In a real app, send to OpenAI Whisper or Google Speech API.
+    // Since we are using Gemini, we can also use Gemini 1.5 Pro for audio if we send the file bytes.
+    return `[Audio Stub] ${path.basename(filePath)}. (Audio analysis requires Speech-to-Text or Multimodal LLM input).`;
 }

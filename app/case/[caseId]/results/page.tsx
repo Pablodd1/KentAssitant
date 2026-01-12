@@ -40,6 +40,7 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
 
     useEffect(() => {
         fetchResults();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params.caseId]);
 
     if (loading) return (
@@ -160,7 +161,7 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
                                     <tr key={i} className="border-b">
                                         <td className="p-2 font-medium">{gap.missingItem}</td>
                                         <td className="p-2 text-gray-600">{gap.whyItMatters}</td>
-                                        <td className="p-2 italic text-blue-800">"{gap.suggestedQuestion}"</td>
+                                        <td className="p-2 italic text-blue-800">&quot;{gap.suggestedQuestion}&quot;</td>
                                     </tr>
                                 ))}
                             </tbody>
