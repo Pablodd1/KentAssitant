@@ -12,14 +12,18 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
         try {
             // Check if results exist
             const res = await fetch(`/api/cases/${params.caseId}/results`);
-            const data = await res.json();
-            if (data) {
-                setAnalysis(data.parsed);
-            } else {
-                runAnalysis();
+            if (!res.ok) {
+                throw new Error(`API error: ${res.status}`);
             }
-        } catch (e) {
-            setError("Failed to load results");
+            const data = await res.json();
+            if (data && data.parsed) {
+                setAnalysis(data.parsed);
+            } else if (data === null) {
+                // No results yet, run analysis
+                await runAnalysis();
+            }
+        } catch (e: any) {
+            setError(e.message || "Failed to load results");
             setLoading(false);
         }
     };
@@ -28,12 +32,15 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
         setLoading(true);
         try {
             const res = await fetch(`/api/cases/${params.caseId}/analyze`, { method: 'POST' });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.error || `Analysis failed: ${res.status}`);
+            }
             const data = await res.json();
             if (data.error) throw new Error(data.error);
             setAnalysis(data);
         } catch (e: any) {
             setError(e.message || "Analysis failed");
-        } finally {
             setLoading(false);
         }
     };
@@ -54,7 +61,7 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
     if (error) return (
         <div className="flex flex-col items-center justify-center min-h-screen">
             <p className="text-red-600 font-bold mb-4">{error}</p>
-            <button onClick={fetchResults} className="bg-black text-white px-4 py-2 rounded">Retry</button>
+            <button onClick={() => fetchResults()} className="bg-black text-white px-4 py-2 rounded">Retry</button>
         </div>
     );
 
