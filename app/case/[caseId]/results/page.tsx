@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, Printer, Copy } from 'lucide-react';
 
 export default function ResultsPage({ params }: { params: { caseId: string } }) {
@@ -7,7 +7,7 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const fetchResults = useCallback(async () => {
+    const fetchResults = async () => {
         setLoading(true);
         try {
             // Check if results exist
@@ -22,10 +22,9 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
             setError("Failed to load results");
             setLoading(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [params.caseId]);
+    };
 
-    const runAnalysis = useCallback(async () => {
+    const runAnalysis = async () => {
         setLoading(true);
         try {
             const res = await fetch(`/api/cases/${params.caseId}/analyze`, { method: 'POST' });
@@ -37,12 +36,12 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
         } finally {
             setLoading(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [params.caseId]);
+    };
 
     useEffect(() => {
         fetchResults();
-    }, [fetchResults]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [params.caseId]);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-screen">
