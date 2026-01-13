@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, Printer, Copy } from 'lucide-react';
 
 export default function ResultsPage({ params }: { params: Promise<{ caseId: string }> | { caseId: string } }) {
@@ -7,9 +7,11 @@ export default function ResultsPage({ params }: { params: Promise<{ caseId: stri
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [caseId, setCaseId] = useState<string>("");
+    const [mounted, setMounted] = useState(false);
 
     // Resolve params promise if present (Next.js 14 compatibility)
     useEffect(() => {
+        setMounted(true);
         const getCaseId = async () => {
             try {
                 const resolvedParams = await params;
@@ -22,7 +24,7 @@ export default function ResultsPage({ params }: { params: Promise<{ caseId: stri
         getCaseId();
     }, [params]);
 
-    const fetchResults = useCallback(async () => {
+    const fetchResults = async () => {
         if (!caseId) return;
         setLoading(true);
         try {
@@ -41,9 +43,9 @@ export default function ResultsPage({ params }: { params: Promise<{ caseId: stri
         } finally {
             setLoading(false);
         }
-    }, [caseId]);
+    };
 
-    const runAnalysis = useCallback(async () => {
+    const runAnalysis = async () => {
         if (!caseId) return;
         setLoading(true);
         try {
@@ -60,14 +62,24 @@ export default function ResultsPage({ params }: { params: Promise<{ caseId: stri
         } finally {
             setLoading(false);
         }
-    }, [caseId]);
+    };
 
     // Trigger initial fetch when caseId is ready
     useEffect(() => {
         if (caseId) {
             fetchResults();
         }
-    }, [caseId, fetchResults]);
+    }, [caseId]);
+
+    // Prevent hydration mismatch by not rendering until mounted
+    if (!mounted) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen">
+                <Loader2 className="animate-spin w-16 h-16 text-blue-600" />
+                <p className="mt-4 text-xl font-bold">Loading...</p>
+            </div>
+        );
+    }
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-screen">
