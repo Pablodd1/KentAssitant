@@ -21,6 +21,7 @@ export default function UploadPage({ params }: { params: { caseId: string } }) {
         fetchCase();
         const interval = setInterval(fetchCase, 2000); // Polling for status updates
         return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [caseId]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
