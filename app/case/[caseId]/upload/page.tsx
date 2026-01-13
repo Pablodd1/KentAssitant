@@ -3,13 +3,26 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function UploadPage({ params }: { params: { caseId: string } }) {
+export default function UploadPage({ params }: { params: Promise<{ caseId: string }> | { caseId: string } }) {
     const [files, setFiles] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
     const router = useRouter();
-    const { caseId } = params;
+    const [caseId, setCaseId] = useState<string>("");
+
+    useEffect(() => {
+        const getCaseId = async () => {
+            try {
+                const resolvedParams = await params;
+                setCaseId(resolvedParams.caseId);
+            } catch (err) {
+                console.error("Failed to resolve case ID");
+            }
+        };
+        getCaseId();
+    }, [params]);
 
     const fetchCase = useCallback(async () => {
+        if (!caseId) return;
         const res = await fetch(`/api/cases/${caseId}`);
         if (res.ok) {
             const data = await res.json();
@@ -18,6 +31,7 @@ export default function UploadPage({ params }: { params: { caseId: string } }) {
     }, [caseId]);
 
     useEffect(() => {
+        if (!caseId) return;
         fetchCase();
         const interval = setInterval(fetchCase, 2000); // Polling for status updates
         return () => clearInterval(interval);

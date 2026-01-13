@@ -1,17 +1,32 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Printer, Copy } from 'lucide-react';
 
-export default function ResultsPage({ params }: { params: { caseId: string } }) {
+export default function ResultsPage({ params }: { params: Promise<{ caseId: string }> | { caseId: string } }) {
     const [analysis, setAnalysis] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [caseId, setCaseId] = useState<string>("");
 
-    const fetchResults = async () => {
+    // Resolve params promise if present (Next.js 14 compatibility)
+    useEffect(() => {
+        const getCaseId = async () => {
+            try {
+                const resolvedParams = await params;
+                setCaseId(resolvedParams.caseId);
+            } catch (err) {
+                setError("Invalid case ID");
+                setLoading(false);
+            }
+        };
+        getCaseId();
+    }, [params]);
+
+    const fetchResults = useCallback(async () => {
+        if (!caseId) return;
         setLoading(true);
         try {
-            // Check if results exist
-            const res = await fetch(`/api/cases/${params.caseId}/results`);
+            const res = await fetch(`/api/cases/${caseId}/results`);
             if (!res.ok) {
                 throw new Error(`API error: ${res.status}`);
             }
@@ -19,19 +34,20 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
             if (data && data.parsed) {
                 setAnalysis(data.parsed);
             } else if (data === null) {
-                // No results yet, run analysis
                 await runAnalysis();
             }
         } catch (e: any) {
             setError(e.message || "Failed to load results");
+        } finally {
             setLoading(false);
         }
-    };
+    }, [caseId]);
 
-    const runAnalysis = async () => {
+    const runAnalysis = useCallback(async () => {
+        if (!caseId) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/cases/${params.caseId}/analyze`, { method: 'POST' });
+            const res = await fetch(`/api/cases/${caseId}/analyze`, { method: 'POST' });
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
                 throw new Error(errorData.error || `Analysis failed: ${res.status}`);
@@ -41,14 +57,17 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
             setAnalysis(data);
         } catch (e: any) {
             setError(e.message || "Analysis failed");
+        } finally {
             setLoading(false);
         }
-    };
+    }, [caseId]);
 
+    // Trigger initial fetch when caseId is ready
     useEffect(() => {
-        fetchResults();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [params.caseId]);
+        if (caseId) {
+            fetchResults();
+        }
+    }, [caseId, fetchResults]);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-screen">
@@ -90,7 +109,7 @@ export default function ResultsPage({ params }: { params: { caseId: string } }) 
                         <h1 className="text-3xl font-bold text-gray-900">Provider Clinical Intelligence Report</h1>
                         <p className="text-gray-500 mt-2">CONFIDENTIAL - PROVIDER USE ONLY - DO NOT DISTRIBUTE TO PATIENT</p>
                         <div className="mt-4 flex gap-8 text-sm font-medium">
-                            <p>CASE CODE: <span className="text-blue-700 bg-blue-50 px-2 py-1 rounded">{params.caseId.slice(0, 8).toUpperCase()}</span></p>
+                            <p>CASE CODE: <span className="text-blue-700 bg-blue-50 px-2 py-1 rounded">{caseId.slice(0, 8).toUpperCase()}</span></p>
                             <p>DATE: {new Date().toLocaleDateString()}</p>
                         </div>
                     </header>

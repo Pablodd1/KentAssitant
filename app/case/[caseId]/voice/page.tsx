@@ -1,16 +1,29 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mic, Square, Loader2 } from 'lucide-react';
 
-export default function VoicePage({ params }: { params: { caseId: string } }) {
+export default function VoicePage({ params }: { params: Promise<{ caseId: string }> | { caseId: string } }) {
     const [recording, setRecording] = useState(false);
     const [transcribing, setTranscribing] = useState(false);
     const [transcript, setTranscript] = useState("");
+    const [caseId, setCaseId] = useState<string>("");
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const router = useRouter();
+
+    useEffect(() => {
+        const getCaseId = async () => {
+            try {
+                const resolvedParams = await params;
+                setCaseId(resolvedParams.caseId);
+            } catch (err) {
+                console.error("Failed to resolve case ID");
+            }
+        };
+        getCaseId();
+    }, [params]);
 
     const startRecording = async () => {
         try {
@@ -44,13 +57,17 @@ export default function VoicePage({ params }: { params: { caseId: string } }) {
     };
 
     const uploadAudio = async () => {
+        if (!caseId) {
+            alert("Case ID not loaded");
+            return;
+        }
         setTranscribing(true);
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const formData = new FormData();
         formData.append('audio', audioBlob, 'recording.webm');
 
         try {
-            const res = await fetch(`/api/cases/${params.caseId}/voice`, {
+            const res = await fetch(`/api/cases/${caseId}/voice`, {
                 method: 'POST',
                 body: formData,
             });
@@ -108,13 +125,13 @@ export default function VoicePage({ params }: { params: { caseId: string } }) {
 
             <div className="mt-10 flex justify-center gap-6 items-center">
                 <Link
-                    href={`/case/${params.caseId}/upload`}
+                    href={`/case/${caseId}/upload`}
                     className="text-gray-600 hover:text-gray-900 underline"
                 >
                     &larr; Back to Upload
                 </Link>
                 <Link
-                    href={`/case/${params.caseId}/results`}
+                    href={`/case/${caseId}/results`}
                     className="bg-black text-white px-8 py-3 rounded-lg text-lg hover:bg-gray-800 shadow-md transition-colors"
                 >
                     Run Analysis &rarr;
