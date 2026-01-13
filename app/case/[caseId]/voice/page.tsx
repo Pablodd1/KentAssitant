@@ -54,8 +54,15 @@ export default function VoicePage({ params }: { params: { caseId: string } }) {
                 method: 'POST',
                 body: formData,
             });
+            if (!res.ok) {
+                throw new Error(`API error: ${res.status}`);
+            }
             const data = await res.json();
-            setTranscript(data.transcript.content);
+            if (data.transcript?.content) {
+                setTranscript(data.transcript.content);
+            } else {
+                throw new Error('Invalid response structure: missing transcript content');
+            }
         } catch (err) {
             console.error(err);
             alert("Transcription failed");

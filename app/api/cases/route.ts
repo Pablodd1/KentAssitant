@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(newCase);
     } catch (error) {
+        console.error('Error creating case:', error);
         return NextResponse.json({ error: 'Failed to create case' }, { status: 500 });
     }
 }
@@ -25,6 +26,7 @@ export async function GET() {
         const cases = await db.case.findMany({ orderBy: { createdAt: 'desc' } });
         return NextResponse.json(cases);
     } catch (error) {
+        console.error('Error fetching cases:', error);
         return NextResponse.json({ error: 'Failed to fetch cases' }, { status: 500 });
     }
 }

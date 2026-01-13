@@ -9,8 +9,16 @@ export async function GET(req: NextRequest, { params }: { params: { caseId: stri
 
     if (!result) return NextResponse.json(null);
 
+    let parsedData;
+    try {
+        parsedData = JSON.parse(result.outputJson);
+    } catch (parseError) {
+        console.error("Error parsing analysis result JSON:", parseError);
+        return NextResponse.json({ error: 'Invalid analysis result format' }, { status: 500 });
+    }
+
     return NextResponse.json({
         ...result,
-        parsed: JSON.parse(result.outputJson)
+        parsed: parsedData
     });
 }

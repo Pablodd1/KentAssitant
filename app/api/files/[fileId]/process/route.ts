@@ -43,6 +43,15 @@ export async function POST(req: NextRequest, { params }: { params: { fileId: str
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Processing error:", error);
+        // Update file status to ERROR on failure
+        try {
+            await db.file.update({
+                where: { id: params.fileId },
+                data: { status: "ERROR" }
+            });
+        } catch (updateError) {
+            console.error("Failed to update file status to ERROR:", updateError);
+        }
         return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
     }
 }

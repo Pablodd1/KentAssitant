@@ -30,7 +30,7 @@ model Case {
 model File {
   id          String   @id @default(uuid())
   caseId      String
-  case        Case     @relation(fields: [caseId], references: [id])
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   filename    String
   mimeType    String
   size        Int
@@ -45,7 +45,7 @@ model File {
 model ExtractionArtifact {
   id        String   @id @default(uuid())
   fileId    String
-  file      File     @relation(fields: [fileId], references: [id])
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
   type      String   // TEXT, OCR, TRANSCRIPT
   content   String   @db.Text
   status    String   @default("PENDING")
@@ -56,7 +56,7 @@ model ExtractionArtifact {
 model Transcript {
   id        String   @id @default(uuid())
   caseId    String
-  case      Case     @relation(fields: [caseId], references: [id])
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   source    String   // LIVE_MIC, FILE_UPLOAD
   content   String   @db.Text
   createdAt DateTime @default(now())
@@ -65,7 +65,7 @@ model Transcript {
 model AnalysisRun {
   id          String   @id @default(uuid())
   caseId      String
-  case        Case     @relation(fields: [caseId], references: [id])
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   modelName   String
   outputJson  String   @db.Text // Storing huge JSON
   createdAt   DateTime @default(now())

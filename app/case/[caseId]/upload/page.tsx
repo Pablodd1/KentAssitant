@@ -21,7 +21,7 @@ export default function UploadPage({ params }: { params: { caseId: string } }) {
         fetchCase();
         const interval = setInterval(fetchCase, 2000); // Polling for status updates
         return () => clearInterval(interval);
-    }, [fetchCase]);
+    }, [caseId]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -43,7 +43,14 @@ export default function UploadPage({ params }: { params: { caseId: string } }) {
                 const data = await res.json();
                 // Trigger processing for each
                 for (const f of data.files) {
-                    fetch(`/api/files/${f.id}/process`, { method: 'POST' }).then(() => fetchCase());
+                    try {
+                        const processRes = await fetch(`/api/files/${f.id}/process`, { method: 'POST' });
+                        if (!processRes.ok) {
+                            console.error(`Failed to process file ${f.id}:`, await processRes.text());
+                        }
+                    } catch (processError) {
+                        console.error(`Error processing file ${f.id}:`, processError);
+                    }
                 }
                 await fetchCase();
             }
