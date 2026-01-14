@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+const isDemoMode = !process.env.DATABASE_URL;
+
+// Demo case data (reused from route.ts)
+const demoCases: any[] = [];
+
 export async function GET(req: NextRequest, { params }: { params: { caseId: string } }) {
+    if (isDemoMode) {
+        const kase = demoCases.find(c => c.id === params.caseId);
+        if (!kase) {
+            return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+        }
+        return NextResponse.json(kase);
+    }
+
     try {
         const kase = await db.case.findUnique({
             where: { id: params.caseId },
@@ -16,8 +29,15 @@ export async function GET(req: NextRequest, { params }: { params: { caseId: stri
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { caseId: string } }) {
+    if (isDemoMode) {
+        const index = demoCases.findIndex(c => c.id === params.caseId);
+        if (index !== -1) {
+            demoCases.splice(index, 1);
+        }
+        return NextResponse.json({ success: true });
+    }
+
     try {
-        // Delete the case - related records will be deleted via cascade
         await db.case.delete({
             where: { id: params.caseId }
         });
