@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [isDemo, setIsDemo] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -14,13 +14,17 @@ export default function CasesPage() {
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
-                    setError(data.error);
+                    // Still in database mode with error
+                    setIsDemo(false);
                 } else {
                     setCases(data);
+                    // Check if demo data (no real database)
+                    if (data.length > 0 && data[0].id.startsWith('demo-')) {
+                        setIsDemo(true);
+                    }
                 }
             })
             .catch(err => {
-                setError('Failed to load cases. Make sure DATABASE_URL is configured.');
                 console.error(err);
             })
             .finally(() => setLoading(false));
@@ -33,7 +37,13 @@ export default function CasesPage() {
             if (newCase.error) {
                 alert(newCase.error);
             } else {
-                router.push(`/case/${newCase.id}/upload`);
+                // In demo mode, redirect to demo upload page
+                if (isDemo || newCase.id.startsWith('demo-')) {
+                    alert('Demo Mode: Case created! (No database connected)');
+                    setCases(prev => [newCase, ...prev]);
+                } else {
+                    router.push(`/case/${newCase.id}/upload`);
+                }
             }
         } catch (err) {
             alert('Failed to create case. Check console for errors.');
@@ -48,23 +58,16 @@ export default function CasesPage() {
         );
     }
 
-    if (error) {
-        return (
-            <div className="container mx-auto py-10 text-center">
-                <h1 className="text-3xl font-bold mb-6">American Wellness MD Assistant</h1>
-                <div className="bg-red-50 border border-red-200 p-6 rounded-lg max-w-md mx-auto">
-                    <h2 className="text-red-600 font-bold text-xl mb-2">Database Error</h2>
-                    <p className="text-red-700 mb-4">{error}</p>
-                    <p className="text-sm text-gray-600">
-                        Please configure the DATABASE_URL environment variable in your deployment platform (Vercel/Railway/etc).
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="container mx-auto py-10">
+            {isDemo && (
+                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
+                    <p className="text-yellow-800">
+                        <strong>Demo Mode</strong> - No database connected. Create a case to see the UI flow.
+                    </p>
+                </div>
+            )}
+            
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Cases</h1>
                 <button
@@ -83,11 +86,20 @@ export default function CasesPage() {
                             <div>
                                 <h2 className="font-bold text-xl">{c.caseCode}</h2>
                                 <p className="text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</p>
-                                <p className="text-sm">Status: <span className="font-medium">{c.status}</span></p>
+                                <p className="text-sm">Status: <span className={`font-medium ${c.status === 'COMPLETED' ? 'text-green-600' : c.status === 'DRAFT' ? 'text-blue-600' : ''}`}>{c.status}</span></p>
                             </div>
-                            <Link href={`/case/${c.id}/upload`} className="text-blue-600 hover:underline font-medium">
-                                Open
-                            </Link>
+                            {c.id.startsWith('demo-') ? (
+                                <button 
+                                    onClick={() => alert('Demo Mode: Database required for full functionality')}
+                                    className="text-blue-600 hover:underline font-medium"
+                                >
+                                    Open
+                                </button>
+                            ) : (
+                                <Link href={`/case/${c.id}/upload`} className="text-blue-600 hover:underline font-medium">
+                                    Open
+                                </Link>
+                            )}
                         </div>
                     ))
                 )}
