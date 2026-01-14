@@ -172,7 +172,10 @@ export default function UploadPage({ params }: { params: Promise<{ caseId: strin
                                     {file.status}
                                 </span>
                                 {file.status === 'READY' && (
-                                    <button className="text-red-500 hover:text-red-700">
+                                    <button
+                                        className="text-red-500 hover:text-red-700"
+                                        aria-label={`Remove ${file.filename}`}
+                                    >
                                         <X size={18} />
                                     </button>
                                 )}

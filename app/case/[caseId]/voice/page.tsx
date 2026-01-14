@@ -97,21 +97,25 @@ export default function VoicePage({ params }: { params: Promise<{ caseId: string
                     <button
                         onClick={startRecording}
                         disabled={transcribing}
-                        className="bg-red-600 text-white p-8 rounded-full hover:bg-red-700 transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+                        aria-label="Start recording"
+                        title="Start recording"
+                        className="bg-red-600 text-white p-8 rounded-full hover:bg-red-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-300 transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
                     >
                         <Mic size={48} />
                     </button>
                 ) : (
                     <button
                         onClick={stopRecording}
-                        className="bg-gray-800 text-white p-8 rounded-full hover:bg-gray-900 transition-all shadow-lg hover:scale-105 active:scale-95"
+                        aria-label="Stop recording"
+                        title="Stop recording"
+                        className="bg-gray-800 text-white p-8 rounded-full hover:bg-gray-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-400 transition-all shadow-lg hover:scale-105 active:scale-95"
                     >
                         <Square size={48} />
                     </button>
                 )}
             </div>
 
-            <div className="h-12 text-lg">
+            <div className="h-12 text-lg" aria-live="polite">
                 {recording && <p className="text-red-600 font-bold animate-pulse">Recording... Click square to stop.</p>}
                 {transcribing && <p className="text-blue-600 font-bold flex items-center justify-center gap-2"><Loader2 className="animate-spin" /> Transcribing...</p>}
             </div>
