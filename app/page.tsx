@@ -5,7 +5,7 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center min-h-screen py-2">
             <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
                 <h1 className="text-6xl font-bold">
-                    Kent Assistant <span className="text-blue-600">MD</span>
+                    American Wellness <span className="text-blue-600">MD Assistant</span>
                 </h1>
                 <p className="mt-3 text-2xl">
                     Advanced Clinical Reasoning & Documentation System

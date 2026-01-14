@@ -51,7 +51,7 @@ export default function CasesPage() {
     if (error) {
         return (
             <div className="container mx-auto py-10 text-center">
-                <h1 className="text-3xl font-bold mb-6">Kent Assistant MD</h1>
+                <h1 className="text-3xl font-bold mb-6">American Wellness MD Assistant</h1>
                 <div className="bg-red-50 border border-red-200 p-6 rounded-lg max-w-md mx-auto">
                     <h2 className="text-red-600 font-bold text-xl mb-2">Database Error</h2>
                     <p className="text-red-700 mb-4">{error}</p>
