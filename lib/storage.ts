@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function saveFileLocal(file: File, caseId: string): Promise<{ path: string; size: number; mime: string; name: string }> {
     // file is a Web API File object from request.formData()
@@ -15,9 +16,9 @@ export async function saveFileLocal(file: File, caseId: string): Promise<{ path:
     }
 
     const fileName = file.name;
-    // Sanitize filename to prevent issues
-    const safeName = fileName.replace(/[^a-z0-9.]/gi, '_');
-    const uniqueName = `${Date.now()}-${safeName}`;
+    const extension = path.extname(fileName) || '';
+    // Use uuid for unique filename
+    const uniqueName = `${uuidv4()}${extension}`;
     const filePath = path.join(uploadDir, uniqueName);
 
     await fs.writeFile(filePath, buffer);
