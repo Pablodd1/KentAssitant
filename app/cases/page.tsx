@@ -2,10 +2,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [creating, setCreating] = useState(false);
     const [isDemo, setIsDemo] = useState(false);
     const router = useRouter();
 
@@ -30,21 +32,27 @@ export default function CasesPage() {
     }, []);
 
     const createCase = async () => {
+        if (creating) return;
+        setCreating(true);
         try {
             const res = await fetch('/api/cases', { method: 'POST' });
             const newCase = await res.json();
             if (newCase.error) {
                 alert(newCase.error);
+                setCreating(false);
             } else {
                 if (isDemo || newCase.id.startsWith('case-') || newCase.id.startsWith('demo-')) {
                     alert('Demo Mode: Case created!');
                     setCases(prev => [newCase, ...prev]);
+                    setCreating(false);
                 } else {
                     router.push(`/case/${newCase.id}/upload`);
+                    // Keep creating true while navigating
                 }
             }
         } catch (err) {
             alert('Failed to create case.');
+            setCreating(false);
         }
     };
 
@@ -80,9 +88,12 @@ export default function CasesPage() {
                 <h1 className="text-3xl font-bold">Patient Cases</h1>
                 <button
                     onClick={createCase}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium"
+                    disabled={creating}
+                    aria-label="Create new patient case"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                    + New Case
+                    {creating ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                    {creating ? 'Creating...' : '+ New Case'}
                 </button>
             </div>
             
@@ -92,9 +103,11 @@ export default function CasesPage() {
                         <p className="text-gray-500 text-lg mb-4">No patient cases yet</p>
                         <button
                             onClick={createCase}
-                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                            disabled={creating}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
-                            Create First Case
+                            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                            {creating ? 'Creating...' : 'Create First Case'}
                         </button>
                     </div>
                 ) : (
@@ -116,6 +129,7 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
+                                aria-label={`Open case ${c.caseCode || 'Unknown Case'}`}
                                 className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
                             >
                                 Open Case →
