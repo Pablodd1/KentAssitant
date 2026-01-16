@@ -46,7 +46,8 @@ export async function GET(req: NextRequest, { params }: { params: { caseId: stri
             parsed: parsedData
         });
     } catch (error) {
-        console.error('Error fetching results:', error);
-        return NextResponse.json({ error: 'Error fetching results' }, { status: 500 });
+        console.error('Error fetching results from DB:', error);
+        // Fallback: If DB fails, and no demo result was found (checked earlier), return null to let UI handle "No analysis"
+        return NextResponse.json(null);
     }
 }
