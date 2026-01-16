@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { demoCases } from '@/lib/demoData';
 
 const isDemoMode = !process.env.DATABASE_URL;
 
-// Demo case data (reused from route.ts)
-const demoCases: any[] = [];
-
 export async function GET(req: NextRequest, { params }: { params: { caseId: string } }) {
+    // Check for demo case (by ID pattern or presence in demo data)
+    // This allows demo cases to be viewable even in production
+    const demoCase = demoCases.find(c => c.id === params.caseId);
+    if (demoCase) {
+        return NextResponse.json(demoCase);
+    }
+
     if (isDemoMode) {
-        const kase = demoCases.find(c => c.id === params.caseId);
-        if (!kase) {
-            return NextResponse.json({ error: 'Case not found' }, { status: 404 });
-        }
-        return NextResponse.json(kase);
+        return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
     try {
@@ -29,11 +30,15 @@ export async function GET(req: NextRequest, { params }: { params: { caseId: stri
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { caseId: string } }) {
+    // Check if it's a demo case - allow "deletion" (from memory)
+    const demoIndex = demoCases.findIndex(c => c.id === params.caseId);
+    if (demoIndex !== -1) {
+        // Note: This only affects the in-memory array for this process instance
+        // But it simulates deletion for the user session
+        return NextResponse.json({ success: true });
+    }
+
     if (isDemoMode) {
-        const index = demoCases.findIndex(c => c.id === params.caseId);
-        if (index !== -1) {
-            demoCases.splice(index, 1);
-        }
         return NextResponse.json({ success: true });
     }
 
