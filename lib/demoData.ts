@@ -59,7 +59,7 @@ const globalForDemo = globalThis as unknown as {
     initialized: boolean;
 };
 
-// Initialize with sample data
+// Initialize with sample data based on real Americare Wellness patient format
 function initializeDemoData() {
     if (globalForDemo.initialized) return;
 
@@ -71,8 +71,8 @@ function initializeDemoData() {
             createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
             updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
             files: [
-                { id: 'file-001', filename: 'lab-results.pdf', mimeType: 'application/pdf', size: 245000, status: 'READY' },
-                { id: 'file-002', filename: 'patient-intake.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 56000, status: 'READY' }
+                { id: 'file-001', filename: 'test61811_Summary.pdf', mimeType: 'application/pdf', size: 52030, status: 'READY' },
+                { id: 'file-002', filename: 'lab-results.pdf', mimeType: 'application/pdf', size: 245000, status: 'READY' }
             ]
         },
         {
@@ -104,88 +104,127 @@ function initializeDemoData() {
 }
 
 function getSampleAnalysis(): DemoAnalysis {
+    // Based on real Americare Wellness patient summary format
     return {
-        executiveSummary: "Patient John Smith (52M) presents with metabolic syndrome indicators including elevated fasting glucose, hypertension, and dyslipidemia. Comprehensive analysis suggests lifestyle modifications and targeted supplementation may improve biomarkers within 3-6 months.",
+        executiveSummary: "Patient (39M) presents with multiple chronic conditions including Obesity, HTN, HLD, DM, GERD, and Anxiety. Current medications include Metformin 500mg BID, Atenolol 25mg daily, Potassium Chloride 10MEQ daily, and Azithromycin (acute). Family history significant for DM (sister), Breast Cancer (mother, brother), Dementia (father), and Prostate Cancer (father). Screen for sleep apnea given obesity as major risk factor. Lifestyle modifications with Mediterranean/DASH diet and vitamin D supplementation recommended.",
         abnormalFindings: [
-            "Fasting glucose: 118 mg/dL (elevated, prediabetic range)",
-            "Blood pressure: 145/92 mmHg (stage 1 hypertension)",
-            "LDL cholesterol: 165 mg/dL (above optimal)",
-            "Triglycerides: 198 mg/dL (borderline high)",
-            "Waist circumference: 42 inches (elevated cardiovascular risk)"
+            "Obesity, unspecified (E66.9) - Major risk factor for multiple comorbidities",
+            "Sleep apnea suspected (G47.3) - Screen for symptoms: loud snoring, witnessed apneas, daytime fatigue",
+            "Gastro-esophageal reflux disease (K21) - Assess for heartburn, regurgitation, nocturnal cough",
+            "Vitamin D level - Requires supplementation 1000-2000 IU/day",
+            "BMI elevated - Exact value not recorded in chart"
         ],
         systemCorrelations: [
-            "Insulin resistance linked to visceral adiposity and chronic inflammation",
-            "Elevated cortisol from stress contributing to blood pressure dysregulation",
-            "Gut microbiome dysbiosis affecting lipid metabolism and glucose control",
-            "Mitochondrial dysfunction impacting energy production and metabolism"
+            "Obesity contributing to HTN, DM, sleep apnea risk, and GERD severity",
+            "DM Type 2 linked to obesity and sedentary lifestyle - managed with Metformin",
+            "HTN managed with Atenolol - monitor for bradycardia and fatigue",
+            "GERD exacerbated by obesity - weight loss expected to improve symptoms",
+            "Anxiety may contribute to stress eating and metabolic dysfunction"
         ],
         medicationImpacts: [
             {
-                medication: "Metformin 500mg BID",
-                intended: "Reduces hepatic glucose production and improves insulin sensitivity",
-                possibleSideEffects: "GI upset, B12 deficiency, potential mitochondrial interference",
+                medication: "Metformin HCl 500mg BID",
+                intended: "Reduces hepatic glucose production, improves insulin sensitivity for DM management",
+                possibleSideEffects: "GI upset (nausea, diarrhea), B12 deficiency with long-term use, lactic acidosis (rare)",
                 nutrientDepletions: ["Vitamin B12", "Folate", "CoQ10"]
             },
             {
-                medication: "Lisinopril 10mg daily",
-                intended: "ACE inhibitor for blood pressure and cardiovascular protection",
-                possibleSideEffects: "Dry cough, potassium elevation, zinc depletion",
-                nutrientDepletions: ["Zinc", "Sodium"]
+                medication: "Atenolol 25mg daily",
+                intended: "Beta-blocker for HTN management, reduces heart rate and cardiac output",
+                possibleSideEffects: "Bradycardia, fatigue, cold extremities, may mask hypoglycemia symptoms in diabetics",
+                nutrientDepletions: ["CoQ10", "Melatonin"]
             },
             {
-                medication: "Atorvastatin 20mg daily",
-                intended: "Lowers LDL cholesterol and stabilizes plaques",
-                possibleSideEffects: "Muscle pain, liver enzyme elevation, CoQ10 depletion",
-                nutrientDepletions: ["CoQ10", "Vitamin D"]
+                medication: "Potassium Chloride 10MEQ daily",
+                intended: "Electrolyte supplementation, prevents hypokalemia",
+                possibleSideEffects: "GI irritation, hyperkalemia if renal function impaired",
+                nutrientDepletions: []
+            },
+            {
+                medication: "Azithromycin 250mg (Z-pack)",
+                intended: "Macrolide antibiotic for acute infection (sore throat)",
+                possibleSideEffects: "QT prolongation, GI upset, antibiotic-associated diarrhea",
+                nutrientDepletions: ["B vitamins", "Vitamin K (gut flora disruption)"]
             }
         ],
         redFlags: [
-            "Fasting glucose approaching diabetic threshold (118 mg/dL)",
-            "Family history of cardiovascular disease (father MI at 55)",
-            "Elevated hs-CRP indicating systemic inflammation"
+            "Drug Allergy: Penicillin - documented, avoid penicillin-class antibiotics",
+            "Food Allergy: Seafood/fish - documented, caution with omega-3 fish oil supplements",
+            "Family History: Prostate Cancer (father) - consider early PSA screening and DRE",
+            "Family History: Breast Cancer (mother, brother) - increased awareness needed",
+            "Social History: Cocaine use documented - screen for cardiovascular complications",
+            "Sleep Apnea Risk: High due to obesity - refer for sleep study if symptomatic"
         ],
         providerDataGaps: [
             {
-                missingItem: "HbA1c value",
-                whyItMatters: "Provides 3-month average glucose control picture",
-                suggestedQuestion: "What was the most recent HbA1c result and when was it taken?"
+                missingItem: "BMI exact value",
+                whyItMatters: "Obesity documented but exact BMI not recorded - needed for risk stratification",
+                suggestedQuestion: "Current weight and height to calculate BMI?"
             },
             {
-                missingItem: "Sleep study results",
-                whyItMatters: "Undiagnosed sleep apnea is common in metabolic syndrome",
-                suggestedQuestion: "Have you had a sleep study? Do you experience daytime fatigue or snoring?"
+                missingItem: "Recent lab results",
+                whyItMatters: "No labs done per assessment - baseline metabolic panel needed",
+                suggestedQuestion: "Order comprehensive metabolic panel, lipid panel, HbA1c, vitamin D level"
+            },
+            {
+                missingItem: "Sleep study",
+                whyItMatters: "Sleep apnea screening needed given obesity - affects cardiovascular risk",
+                suggestedQuestion: "Do you experience loud snoring, witnessed apneas, or excessive daytime sleepiness?"
+            },
+            {
+                missingItem: "Last colonoscopy follow-up",
+                whyItMatters: "Last colonoscopy 2019 per history - may be due for repeat",
+                suggestedQuestion: "Were there any polyps found? What was the recommended follow-up interval?"
+            },
+            {
+                missingItem: "Diabetes eye exam",
+                whyItMatters: "Last exam 07-25-2018, overdue for diabetic retinopathy screening",
+                suggestedQuestion: "Schedule dilated eye exam with ophthalmology"
             }
         ],
         therapeuticRecommendations: {
             supplements: [
-                "Berberine 500mg 2x daily - improves insulin sensitivity",
-                "Omega-3 fish oil 2g daily - reduces triglycerides, inflammation",
-                "Magnesium glycinate 400mg before bed - supports BP, glucose metabolism",
-                "Alpha lipoic acid 300mg 2x daily - mitochondrial support"
+                "Vitamin D3 1000-2000 IU/day - recheck level in 3 months",
+                "Continue current multivitamin",
+                "Consider B12 supplementation - monitor for Metformin-induced deficiency",
+                "Omega-3 fatty acids (plant-based due to fish allergy) - for cardiovascular protection",
+                "Magnesium glycinate 400mg - supports glucose metabolism and sleep"
             ],
             lifestyle: [
-                "Intermittent fasting 16:8 - improved insulin sensitivity",
-                "Resistance training 3x weekly - builds muscle mass",
-                "Daily walking 30-45 minutes - cardiovascular health"
+                "Mediterranean and DASH diet: emphasize fruits, vegetables, legumes, whole grains, nuts, olive oil, lean proteins",
+                "Minimize saturated fats, red meat, processed foods, and added sugars",
+                "Limit high-mercury fish in diet (tuna, mackerel) - diversify fish intake",
+                "Regular aerobic and resistance exercise: goal 150 min/week",
+                "Weight management counseling - consider nutritionist referral",
+                "Stress management: mindfulness, breathing exercises, physical activity"
             ],
             biohacking: [
-                "Morning sunlight exposure: 10-15min within 30min of waking",
-                "Cold exposure: start with cold shower 30sec post-workout",
-                "Time-restricted eating: finish eating by 7pm"
+                "Sleep hygiene: consistent bedtime routine to improve sleep quality",
+                "Time-restricted eating: finish eating 3 hours before bedtime to reduce GERD",
+                "Elevate head of bed for GERD symptom management",
+                "Morning sunlight exposure for circadian rhythm regulation",
+                "Consider CPAP therapy if sleep apnea diagnosed"
             ]
         },
         diagnosticRecommendations: [
-            "Comprehensive metabolic panel in 6 weeks",
-            "Lipid panel reassessment in 8 weeks",
-            "Home blood pressure monitoring",
-            "Consider continuous glucose monitoring for 2 weeks"
+            "Comprehensive metabolic panel - baseline assessment",
+            "Lipid panel with CRP - cardiovascular risk stratification",
+            "HbA1c - diabetes control assessment",
+            "Vitamin D level - confirm deficiency and guide supplementation",
+            "Mercury level - given fish consumption concerns",
+            "Sleep study referral - if symptomatic for sleep apnea",
+            "PSA and DRE - prostate cancer screening due to family history",
+            "Dilated eye exam - diabetic retinopathy screening overdue",
+            "Repeat labs in 3-6 months after lifestyle adjustments",
+            "Follow-up telehealth or in-person in 3 months"
         ],
         qualityCheck: {
-            confidence: "85%",
+            confidence: "90%",
             assumptions: [
-                "Patient adherence to supplementation protocol",
-                "No significant changes to current medications",
-                "Standard metabolic response patterns"
+                "Patient adherence to Mediterranean/DASH diet recommendations",
+                "No acute changes to current medication regimen",
+                "Patient will complete recommended lab work and screenings",
+                "Fish allergy confirmed - plant-based omega-3 alternatives recommended"
             ]
         }
     };
