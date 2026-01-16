@@ -1,36 +1,43 @@
 export async function runClinicalAnalysis(contextJson: any): Promise<any> {
     const { generateClinicalPrompt } = await import('@/lib/clinicalPrompt');
     const prompt = generateClinicalPrompt(contextJson);
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
 
-    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+    if (!apiKey) throw new Error("OPENAI_API_KEY not set");
 
-    // Using gemini-1.5-pro (closest to 'Gemini 3 Pro request')
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+    // Using OpenAI GPT-4 for clinical analysis
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            contents: [{
-                parts: [{ text: prompt }]
-            }],
-            generationConfig: {
-                temperature: 0.2,
-                responseMimeType: "application/json"
-            }
+            model: 'gpt-4o',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a clinical intelligence assistant. Always respond with valid JSON only, no markdown formatting.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.2,
+            response_format: { type: 'json_object' }
         })
     });
 
     if (!response.ok) {
         const err = await response.text();
-        throw new Error(`Gemini API Error: ${response.status} ${err}`);
+        throw new Error(`OpenAI API Error: ${response.status} ${err}`);
     }
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data.choices?.[0]?.message?.content;
 
-    if (!text) throw new Error("No response from Gemini");
+    if (!text) throw new Error("No response from OpenAI");
 
     try {
         const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { saveFileLocal } from '@/lib/storage';
 
+const isDemoMode = !process.env.DATABASE_URL;
+
 export async function POST(req: NextRequest) {
     try {
         const searchParams = req.nextUrl.searchParams;
@@ -16,6 +18,25 @@ export async function POST(req: NextRequest) {
 
         if (!files || files.length === 0) {
             return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
+        }
+
+        // Demo mode - return mock file records
+        if (isDemoMode) {
+            const mockFiles = files.map((file, index) => ({
+                id: `demo-file-${Date.now()}-${index}`,
+                caseId: caseId,
+                filename: file.name,
+                mimeType: file.type,
+                size: file.size,
+                storagePath: `/tmp/demo/${file.name}`,
+                status: 'READY',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }));
+            return NextResponse.json({ 
+                files: mockFiles,
+                message: 'Demo mode - files simulated (not persisted)'
+            });
         }
 
         const savedFiles = [];

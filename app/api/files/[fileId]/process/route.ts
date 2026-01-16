@@ -2,9 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { extractText, transcribeAudioStub } from '@/lib/extraction';
 
-export async function POST(req: NextRequest, { params }: { params: { fileId: string } }) {
+const isDemoMode = !process.env.DATABASE_URL;
+
+type RouteContext = {
+    params: Promise<{ fileId: string }>;
+};
+
+export async function POST(req: NextRequest, context: RouteContext) {
+    const { fileId } = await context.params;
+    
+    // Demo mode - return mock success
+    if (isDemoMode) {
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Demo mode - file processing simulated'
+        });
+    }
+    
     try {
-        const file = await db.file.findUnique({ where: { id: params.fileId } });
+        const file = await db.file.findUnique({ where: { id: fileId } });
         if (!file) return NextResponse.json({ error: 'File not found' }, { status: 404 });
 
         let content = "";
@@ -46,7 +62,7 @@ export async function POST(req: NextRequest, { params }: { params: { fileId: str
         // Update file status to ERROR on failure
         try {
             await db.file.update({
-                where: { id: params.fileId },
+                where: { id: fileId },
                 data: { status: "ERROR" }
             });
         } catch (updateError) {

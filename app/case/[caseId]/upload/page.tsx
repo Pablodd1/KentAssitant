@@ -2,13 +2,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FileText, Image, Music, Video, Upload, X } from 'lucide-react';
+import { FileText, Image as ImageIcon, Music, Video, Upload, X } from 'lucide-react';
 
 export default function UploadPage({ params }: { params: Promise<{ caseId: string }> | { caseId: string } }) {
     const [files, setFiles] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
-    const [isDemo, setIsDemo] = useState(false);
+    const [caseData, setCaseData] = useState<any>(null);
     const [caseId, setCaseId] = useState<string>("");
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
@@ -26,44 +27,33 @@ export default function UploadPage({ params }: { params: Promise<{ caseId: strin
     const fetchCase = useCallback(async () => {
         if (!caseId) return;
         
-        // Demo mode check
-        if (caseId.startsWith('case-') || caseId.startsWith('demo-')) {
-            setIsDemo(true);
-            // Load demo files for case-001
-            if (caseId === 'case-001') {
-                setFiles([
-                    { id: 'file-001', filename: 'lab-results.pdf', mimeType: 'application/pdf', size: 245000, status: 'READY' },
-                    { id: 'file-002', filename: 'patient-intake.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 56000, status: 'READY' }
-                ]);
+        try {
+            const res = await fetch(`/api/cases/${caseId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setCaseData(data);
+                setFiles(data.files || []);
             } else {
-                setFiles([]);
+                console.error('Failed to fetch case:', res.status);
             }
-            return;
-        }
-        
-        // Normal mode
-        const res = await fetch(`/api/cases/${caseId}`);
-        if (res.ok) {
-            const data = await res.json();
-            setFiles(data.files || []);
+        } catch (err) {
+            console.error('Error fetching case:', err);
+        } finally {
+            setLoading(false);
         }
     }, [caseId]);
 
     useEffect(() => {
         if (!caseId) return;
         fetchCase();
-        // In demo mode, don't poll
-        if (isDemo) return;
-        const interval = setInterval(fetchCase, 2000);
+        // Poll for file status updates
+        const interval = setInterval(fetchCase, 3000);
         return () => clearInterval(interval);
-    }, [caseId, fetchCase, isDemo]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [caseId]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            if (isDemo) {
-                alert('Demo Mode: File upload is disabled. Connect a database to test full functionality.');
-                return;
-            }
             await uploadFiles(Array.from(e.target.files));
         }
     };
@@ -100,7 +90,7 @@ export default function UploadPage({ params }: { params: Promise<{ caseId: strin
     };
 
     const getFileIcon = (mimeType: string) => {
-        if (mimeType.startsWith('image/')) return <Image className="text-green-500" size={20} />;
+        if (mimeType.startsWith('image/')) return <ImageIcon className="text-green-500" size={20} />;
         if (mimeType.startsWith('audio/')) return <Music className="text-purple-500" size={20} />;
         if (mimeType.startsWith('video/')) return <Video className="text-blue-500" size={20} />;
         return <FileText className="text-gray-500" size={20} />;
@@ -112,12 +102,20 @@ export default function UploadPage({ params }: { params: Promise<{ caseId: strin
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     };
 
+    if (loading && !caseData) {
+        return (
+            <div className="container mx-auto py-10 max-w-4xl text-center">
+                <p className="text-xl">Loading case...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto py-10 max-w-4xl">
-            {isDemo && (
-                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
-                    <p className="text-yellow-800">
-                        <strong>Demo Mode</strong> - File upload is disabled. View the pre-loaded files or proceed to voice capture.
+            {caseData && (
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+                    <p className="text-blue-800">
+                        <strong>Case:</strong> {caseData.caseCode} • <strong>Status:</strong> {caseData.status}
                     </p>
                 </div>
             )}
@@ -138,7 +136,7 @@ export default function UploadPage({ params }: { params: Promise<{ caseId: strin
                     multiple
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.wav,.mp3,.mp4"
                     onChange={handleFileChange}
-                    disabled={uploading || isDemo}
+                    disabled={uploading}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                 />
                 <div className="space-y-2 pointer-events-none">
@@ -187,21 +185,27 @@ export default function UploadPage({ params }: { params: Promise<{ caseId: strin
                 </div>
             </div>
 
-            <div className="mt-8 flex justify-between">
+            <div className="mt-8 flex justify-between items-center">
                 <Link
                     href="/cases"
                     className="text-gray-600 hover:text-gray-900 font-medium"
                 >
                     ← Back to Cases
                 </Link>
-                {files.length > 0 && (
+                <div className="flex gap-4">
                     <Link
                         href={`/case/${caseId}/voice`}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium"
+                        className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 shadow-md transition-colors font-medium"
                     >
-                        Continue to Voice Capture →
+                        Voice Capture →
                     </Link>
-                )}
+                    <Link
+                        href={`/case/${caseId}/results`}
+                        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 shadow-md transition-colors font-medium"
+                    >
+                        Run Analysis →
+                    </Link>
+                </div>
             </div>
         </div>
     );

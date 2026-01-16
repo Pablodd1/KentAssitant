@@ -69,6 +69,7 @@ export default function ResultsPage({ params }: { params: Promise<{ caseId: stri
         if (caseId) {
             fetchResults();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [caseId]);
 
     // Prevent hydration mismatch by not rendering until mounted

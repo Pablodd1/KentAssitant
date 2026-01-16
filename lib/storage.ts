@@ -1,26 +1,40 @@
 import fs from 'fs/promises';
 import path from 'path';
 
+/**
+ * Saves a file to local storage.
+ * On Vercel serverless, uses /tmp directory which is ephemeral.
+ * For production, consider using cloud storage (S3, Vercel Blob, etc.)
+ */
 export async function saveFileLocal(file: File, caseId: string): Promise<{ path: string; size: number; mime: string; name: string }> {
     // file is a Web API File object from request.formData()
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Ensure uploads directory exists
-    const uploadDir = path.join(process.cwd(), 'uploads', caseId);
+    // Use /tmp directory on Vercel for serverless compatibility
+    // Note: /tmp is ephemeral and files will be lost between invocations
+    const baseDir = process.env.VERCEL ? '/tmp' : process.cwd();
+    const uploadDir = path.join(baseDir, 'uploads', caseId);
+    
     try {
         await fs.mkdir(uploadDir, { recursive: true });
     } catch (e) {
-        // ignore if exists
+        // Directory may already exist or permission issue
+        console.warn('Could not create upload directory:', e);
     }
 
     const fileName = file.name;
-    // Sanitize filename to prevent issues
-    const safeName = fileName.replace(/[^a-z0-9.]/gi, '_');
+    // Sanitize filename to prevent path traversal and other issues
+    const safeName = fileName.replace(/[^a-z0-9._-]/gi, '_').substring(0, 100);
     const uniqueName = `${Date.now()}-${safeName}`;
     const filePath = path.join(uploadDir, uniqueName);
 
-    await fs.writeFile(filePath, buffer);
+    try {
+        await fs.writeFile(filePath, buffer);
+    } catch (writeError) {
+        console.error('Failed to write file:', writeError);
+        throw new Error('Failed to save uploaded file');
+    }
 
     return {
         path: filePath,
@@ -28,4 +42,28 @@ export async function saveFileLocal(file: File, caseId: string): Promise<{ path:
         mime: file.type,
         name: fileName // Keep original name for display
     };
+}
+
+/**
+ * Checks if file exists at given path
+ */
+export async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await fs.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Deletes a file at the given path
+ */
+export async function deleteFile(filePath: string): Promise<boolean> {
+    try {
+        await fs.unlink(filePath);
+        return true;
+    } catch {
+        return false;
+    }
 }

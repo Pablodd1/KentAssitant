@@ -29,7 +29,7 @@ const nextConfig = {
           // Content Security Policy
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://generativelanguage.googleapis.com;"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.openai.com;"
           },
           // Strict Transport Security (HSTS) - force HTTPS
           {
@@ -63,8 +63,6 @@ const nextConfig = {
   // Security: Disable generating error pages with stack traces
   reactStrictMode: true,
 
-  // Security: Ensure proper encoding
-  stringModules: false
 };
 
 export default nextConfig;

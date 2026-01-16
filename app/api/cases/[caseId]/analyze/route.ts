@@ -2,11 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { buildContext } from '@/lib/contextBuilder';
 import { runClinicalAnalysis } from '@/lib/llmClient';
+import { isDemoMode, getDemoAnalysis, updateDemoCase } from '@/lib/demoData';
 
-export async function POST(req: NextRequest, { params }: { params: { caseId: string } }) {
+type RouteContext = {
+    params: Promise<{ caseId: string }>;
+};
+
+export async function POST(req: NextRequest, routeContext: RouteContext) {
+    const { caseId } = await routeContext.params;
+    
+    // Demo mode handling
+    if (isDemoMode) {
+        // Update case status to COMPLETED
+        updateDemoCase(caseId, { status: 'COMPLETED', updatedAt: new Date().toISOString() });
+        // Return demo results based on caseId
+        const analysis = getDemoAnalysis(caseId);
+        return NextResponse.json(analysis);
+    }
+    
     try {
-        const { caseId } = params;
-
         // Update status
         await db.case.update({ where: { id: caseId }, data: { status: 'ANALYZING' } });
 
@@ -29,7 +43,11 @@ export async function POST(req: NextRequest, { params }: { params: { caseId: str
         return NextResponse.json(analysis);
     } catch (error: any) {
         console.error("Analysis Error:", error);
-        await db.case.update({ where: { id: params.caseId }, data: { status: 'ERROR' } });
+        try {
+            await db.case.update({ where: { id: caseId }, data: { status: 'ERROR' } });
+        } catch (updateError) {
+            console.error("Failed to update case status:", updateError);
+        }
         return NextResponse.json({ error: error.message || 'Analysis failed' }, { status: 500 });
     }
 }

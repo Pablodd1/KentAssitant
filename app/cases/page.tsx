@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isDemo, setIsDemo] = useState(false);
+    const [creating, setCreating] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -14,37 +14,37 @@ export default function CasesPage() {
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
-                    setIsDemo(false);
+                    console.error('Error loading cases:', data.error);
                 } else {
                     setCases(data);
-                    // Check if demo data
-                    if (data.length > 0 && (data[0].id.startsWith('case-') || data[0].id.startsWith('demo-'))) {
-                        setIsDemo(true);
-                    }
                 }
             })
             .catch(err => {
-                console.error(err);
+                console.error('Failed to fetch cases:', err);
             })
             .finally(() => setLoading(false));
     }, []);
 
     const createCase = async () => {
+        if (creating) return;
+        setCreating(true);
+        
         try {
             const res = await fetch('/api/cases', { method: 'POST' });
             const newCase = await res.json();
+            
             if (newCase.error) {
                 alert(newCase.error);
-            } else {
-                if (isDemo || newCase.id.startsWith('case-') || newCase.id.startsWith('demo-')) {
-                    alert('Demo Mode: Case created!');
-                    setCases(prev => [newCase, ...prev]);
-                } else {
-                    router.push(`/case/${newCase.id}/upload`);
-                }
+                return;
             }
+            
+            // Always navigate to the upload page for the new case
+            router.push(`/case/${newCase.id}/upload`);
         } catch (err) {
-            alert('Failed to create case.');
+            console.error('Failed to create case:', err);
+            alert('Failed to create case. Please try again.');
+        } finally {
+            setCreating(false);
         }
     };
 
@@ -66,12 +66,16 @@ export default function CasesPage() {
         );
     }
 
+    // Check if we're in demo mode (no real database)
+    const isDemoMode = cases.some(c => c.id === 'case-001' || c.id === 'case-002' || c.id === 'case-003');
+
     return (
         <div className="container mx-auto py-10 max-w-4xl">
-            {isDemo && (
+            {isDemoMode && (
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
                     <p className="text-yellow-800">
-                        <strong>🏥 Demo Mode</strong> - Sample patient cases loaded. Click &quot;Open&quot; on case AWM-2025-0001 to see the full analysis report workflow.
+                        <strong>🏥 Demo Mode</strong> - Sample patient cases loaded. Database not connected. 
+                        Click &quot;Open Case&quot; on AWM-2025-0001 to see the full analysis workflow.
                     </p>
                 </div>
             )}
@@ -80,9 +84,10 @@ export default function CasesPage() {
                 <h1 className="text-3xl font-bold">Patient Cases</h1>
                 <button
                     onClick={createCase}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium"
+                    disabled={creating}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    + New Case
+                    {creating ? 'Creating...' : '+ New Case'}
                 </button>
             </div>
             
