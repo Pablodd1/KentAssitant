@@ -11,9 +11,9 @@ Advanced Clinical intelligence system powered by Gemini 3 Pro intent (using Gemi
 
 1. **Install Dependencies**:
    ```bash
-   npm install
+   pnpm install
    ```
-   *Note: If you encounter issues, ensure Node.js 18+ is in your PATH.*
+   *Note: This project uses `pnpm`. If you encounter issues, ensure Node.js 18+ is in your PATH.*
 
 2. **Environment Variables**:
    Copy `.env.example` to `.env`.
@@ -21,17 +21,18 @@ Advanced Clinical intelligence system powered by Gemini 3 Pro intent (using Gemi
    cp .env.example .env
    ```
    - `DATABASE_URL`: Connection string for PostgreSQL.
-   - `GEMINI_API_KEY`: Google AI Studio API Key.
+   - `GEMINI_API_KEY`: (Optional) Google AI Studio API Key.
+   - `OPENAI_API_KEY`: (Optional) OpenAI API Key (GPT-4) - Used if Gemini key is missing.
 
 3. **Database Initialization**:
    ```bash
-   npx prisma generate
-   npx prisma db push
+   pnpm exec prisma generate
+   pnpm exec prisma db push
    ```
 
 4. **Run Locally**:
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 ## Workflow
@@ -43,7 +44,11 @@ Advanced Clinical intelligence system powered by Gemini 3 Pro intent (using Gemi
 
 ## Deployment
 - **Vercel**: Deploy directly. Add environment variables in Vercel settings.
-- **Database**: Use Vercel Postgres or Supabase.
+- **Database**:
+  1. Go to the "Storage" tab in your Vercel dashboard.
+  2. Click "Connect Store" or "Create Database".
+  3. Select **Neon** (Serverless Postgres) from the Marketplace list.
+  4. Follow the prompts to connect. Vercel will automatically populate `DATABASE_URL` and other variables.
 
 ## Extraction Notes
 The current extraction pipeline (`lib/extraction.ts`) contains stubs for complex file types (OCR, Audio Transcriptions). Real implementation requires sticking `pdf-parse`, `mammoth`, and an audio transcription API key.
