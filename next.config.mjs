@@ -64,7 +64,6 @@ const nextConfig = {
   reactStrictMode: true,
 
   // Security: Ensure proper encoding
-  stringModules: false
 };
 
 export default nextConfig;

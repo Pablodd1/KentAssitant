@@ -1,42 +1,82 @@
 export async function runClinicalAnalysis(contextJson: any): Promise<any> {
     const { generateClinicalPrompt } = await import('@/lib/clinicalPrompt');
     const prompt = generateClinicalPrompt(contextJson);
-    const apiKey = process.env.GEMINI_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
 
-    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+    if (geminiKey) {
+        // Using gemini-1.5-pro (closest to 'Gemini 3 Pro request')
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        responseMimeType: "application/json"
+                    }
+                })
+            });
 
-    // Using gemini-1.5-pro (closest to 'Gemini 3 Pro request')
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            contents: [{
-                parts: [{ text: prompt }]
-            }],
-            generationConfig: {
-                temperature: 0.2,
-                responseMimeType: "application/json"
+            if (!response.ok) {
+                const err = await response.text();
+                // If Gemini fails, we will try OpenAI below if key exists
+                console.warn(`Gemini API Error: ${response.status} ${err}. Falling back...`);
+                throw new Error(`Gemini API Error`);
             }
-        })
-    });
 
-    if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`Gemini API Error: ${response.status} ${err}`);
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!text) throw new Error("No response from Gemini");
+
+            const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(cleanJson);
+        } catch (e) {
+            console.error("Gemini attempt failed:", e);
+            if (!openaiKey) throw e;
+            // Fallthrough to OpenAI
+        }
     }
 
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (openaiKey) {
+        try {
+            const response = await fetch(`https://api.openai.com/v1/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${openaiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-4-turbo",
+                    messages: [
+                        { role: "user", content: prompt }
+                    ],
+                    response_format: { type: "json_object" }
+                })
+            });
 
-    if (!text) throw new Error("No response from Gemini");
+            if (!response.ok) {
+                const err = await response.text();
+                throw new Error(`OpenAI API Error: ${response.status} ${err}`);
+            }
 
-    try {
-        const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(cleanJson);
-    } catch (e) {
-        console.error("Failed to parse JSON:", text);
-        throw new Error("Invalid JSON from LLM");
+            const data = await response.json();
+            const text = data.choices?.[0]?.message?.content;
+
+            if (!text) throw new Error("No response from OpenAI");
+
+            return JSON.parse(text);
+        } catch (e) {
+            console.error("OpenAI attempt failed:", e);
+            throw new Error("Analysis failed with both providers");
+        }
     }
+
+    throw new Error("No LLM API keys configured (GEMINI_API_KEY or OPENAI_API_KEY)");
 }
