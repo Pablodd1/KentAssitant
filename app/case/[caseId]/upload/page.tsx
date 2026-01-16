@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FileText, Image, Music, Video, Upload, X } from 'lucide-react';
+import { FileText, Image as ImageIcon, Music, Video, Upload, X } from 'lucide-react';
 
 export default function UploadPage({ params }: { params: Promise<{ caseId: string }> | { caseId: string } }) {
     const [files, setFiles] = useState<any[]>([]);
@@ -100,7 +100,7 @@ export default function UploadPage({ params }: { params: Promise<{ caseId: strin
     };
 
     const getFileIcon = (mimeType: string) => {
-        if (mimeType.startsWith('image/')) return <Image className="text-green-500" size={20} />;
+        if (mimeType.startsWith('image/')) return <ImageIcon className="text-green-500" size={20} />;
         if (mimeType.startsWith('audio/')) return <Music className="text-purple-500" size={20} />;
         if (mimeType.startsWith('video/')) return <Video className="text-blue-500" size={20} />;
         return <FileText className="text-gray-500" size={20} />;

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Printer, Copy } from 'lucide-react';
 
 export default function ResultsPage({ params }: { params: Promise<{ caseId: string }> | { caseId: string } }) {
@@ -24,7 +24,26 @@ export default function ResultsPage({ params }: { params: Promise<{ caseId: stri
         getCaseId();
     }, [params]);
 
-    const fetchResults = async () => {
+    const runAnalysis = useCallback(async () => {
+        if (!caseId) return;
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/cases/${caseId}/analyze`, { method: 'POST' });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.error || `Analysis failed: ${res.status}`);
+            }
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            setAnalysis(data);
+        } catch (e: any) {
+            setError(e.message || "Analysis failed");
+        } finally {
+            setLoading(false);
+        }
+    }, [caseId]);
+
+    const fetchResults = useCallback(async () => {
         if (!caseId) return;
         setLoading(true);
         try {
@@ -43,33 +62,14 @@ export default function ResultsPage({ params }: { params: Promise<{ caseId: stri
         } finally {
             setLoading(false);
         }
-    };
-
-    const runAnalysis = async () => {
-        if (!caseId) return;
-        setLoading(true);
-        try {
-            const res = await fetch(`/api/cases/${caseId}/analyze`, { method: 'POST' });
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || `Analysis failed: ${res.status}`);
-            }
-            const data = await res.json();
-            if (data.error) throw new Error(data.error);
-            setAnalysis(data);
-        } catch (e: any) {
-            setError(e.message || "Analysis failed");
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [caseId, runAnalysis]);
 
     // Trigger initial fetch when caseId is ready
     useEffect(() => {
         if (caseId) {
             fetchResults();
         }
-    }, [caseId]);
+    }, [caseId, fetchResults]);
 
     // Prevent hydration mismatch by not rendering until mounted
     if (!mounted) {
