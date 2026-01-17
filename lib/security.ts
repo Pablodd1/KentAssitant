@@ -85,8 +85,9 @@ export interface AuditLogEntry {
   resourceId?: string;
   ipAddress?: string;
   userAgent?: string;
-  status: 'success' | 'failure';
+  status: 'success' | 'failure' | 'warning';
   errorMessage?: string;
+  details?: any;
 }
 
 const auditLogs: AuditLogEntry[] = [];

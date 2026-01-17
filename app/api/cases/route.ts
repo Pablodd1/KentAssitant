@@ -74,19 +74,31 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(newCase);
     } catch (error) {
-        console.error('Error creating case:', error);
+        console.error('Error creating case (DB failed), falling back to demo:', error);
         
-        // Audit log for failure
+        // FALLBACK LOGIC
+        const demoCase = {
+            id: generateDemoCaseId(),
+            caseCode: generateDemoCaseCode(),
+            status: 'DRAFT',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            files: []
+        };
+        addDemoCase(demoCase);
+
+        // Audit log for fallback
         logAuditEvent({
             action: 'CREATE_CASE',
             resourceType: 'case',
+            resourceId: demoCase.id,
             ipAddress: clientIp,
             userAgent: req.headers.get('user-agent') || 'unknown',
-            status: 'failure',
-            errorMessage: error instanceof Error ? error.message : 'Unknown error'
+            status: 'warning',
+            details: { message: 'Database failure, fell back to demo mode', error: error instanceof Error ? error.message : String(error) }
         });
         
-        return NextResponse.json({ error: 'Failed to create case' }, { status: 500 });
+        return NextResponse.json(demoCase);
     }
 }
 
@@ -120,7 +132,18 @@ export async function GET(req: NextRequest) {
         
         return NextResponse.json(cases);
     } catch (error) {
-        console.error('Error fetching cases:', error);
-        return NextResponse.json({ error: 'Failed to fetch cases' }, { status: 500 });
+        console.error('Error fetching cases (DB failed), falling back to demo:', error);
+
+        // Audit log for fallback
+        logAuditEvent({
+            action: 'LIST_CASES',
+            resourceType: 'case',
+            ipAddress: clientIp,
+            userAgent: req.headers.get('user-agent') || 'unknown',
+            status: 'warning',
+            details: { message: 'Database failure, fell back to demo mode', error: error instanceof Error ? error.message : String(error) }
+        });
+
+        return NextResponse.json(getDemoCases());
     }
 }

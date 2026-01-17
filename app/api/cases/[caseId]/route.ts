@@ -25,8 +25,13 @@ export async function GET(req: NextRequest, context: RouteContext) {
         if (!kase) return NextResponse.json({ error: 'Case not found' }, { status: 404 });
         return NextResponse.json(kase);
     } catch (error) {
-        console.error(`Error fetching case ${caseId}:`, error);
-        return NextResponse.json({ error: 'Error fetching case' }, { status: 500 });
+        console.error(`Error fetching case ${caseId} (DB failed), falling back to demo:`, error);
+
+        const kase = getDemoCase(caseId);
+        if (!kase) {
+            return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+        }
+        return NextResponse.json(kase);
     }
 }
 
@@ -44,7 +49,9 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
         });
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error(`Error deleting case ${caseId}:`, error);
-        return NextResponse.json({ error: 'Error deleting case' }, { status: 500 });
+        console.error(`Error deleting case ${caseId} (DB failed), falling back to demo:`, error);
+
+        deleteDemoCase(caseId);
+        return NextResponse.json({ success: true, warning: 'Operated on demo data due to DB failure' });
     }
 }
