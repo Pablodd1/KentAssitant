@@ -1,49 +1,35 @@
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
 export async function runClinicalAnalysis(contextJson: any): Promise<any> {
     const { generateClinicalPrompt } = await import('@/lib/clinicalPrompt');
     const prompt = generateClinicalPrompt(contextJson);
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) throw new Error("OPENAI_API_KEY not set");
-
-    // Using OpenAI GPT-4 for clinical analysis
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are a clinical intelligence assistant. Always respond with valid JSON only, no markdown formatting.'
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            temperature: 0.2,
-            response_format: { type: 'json_object' }
-        })
-    });
-
-    if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`OpenAI API Error: ${response.status} ${err}`);
+    if (!apiKey) {
+        console.error("GEMINI_API_KEY not set");
+        throw new Error("GEMINI_API_KEY not set");
     }
 
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content;
-
-    if (!text) throw new Error("No response from OpenAI");
-
     try {
-        const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(cleanJson);
-    } catch (e) {
-        console.error("Failed to parse JSON:", text);
-        throw new Error("Invalid JSON from LLM");
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // Using gemini-1.5-pro as requested (or flash if preferred for speed, but pro for clinical)
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-pro",
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
+        });
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        if (!text) throw new Error("No response from Gemini");
+
+        return JSON.parse(text);
+    } catch (error: any) {
+        console.error("Gemini API Error:", error);
+        throw new Error(`Gemini Analysis Failed: ${error.message}`);
     }
 }
