@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { extractText, transcribeAudioStub } from '@/lib/extraction';
+import { checkRateLimit, logAuditEvent } from '@/lib/security';
 
 const isDemoMode = !process.env.DATABASE_URL;
 
@@ -9,7 +10,25 @@ type RouteContext = {
 };
 
 export async function POST(req: NextRequest, context: RouteContext) {
+    const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    
+    // Rate limiting for file processing
+    const rateLimit = checkRateLimit(`process:${clientIp}`, 50, 60 * 1000);
+    if (!rateLimit.allowed) {
+        return NextResponse.json(
+            { error: 'Too many processing requests. Please wait before trying again.' },
+            { status: 429, headers: { 'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString() } }
+        );
+    }
+    
     const { fileId } = await context.params;
+    
+    // Validate fileId format
+    const uuidRegex = /^[a-f0-9-]{8,}$/i;
+    if (!fileId || (!uuidRegex.test(fileId) && !fileId.startsWith('demo-file-'))) {
+        return NextResponse.json({ error: 'Invalid file ID format' }, { status: 400 });
+    }
     
     // Demo mode - return mock success
     if (isDemoMode) {

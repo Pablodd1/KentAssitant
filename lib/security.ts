@@ -1,7 +1,25 @@
 import { z } from 'zod';
 
-// Case ID validation - UUID format
-export const caseIdSchema = z.string().uuid({ message: "Invalid case ID format" });
+/**
+ * Security Utilities for Kent Assistant MD
+ * HIPAA-compliant security measures and validation
+ */
+
+// ============================================
+// Schema Validation
+// ============================================
+
+// Case ID validation - UUID format or demo format
+export const caseIdSchema = z.string().refine(
+    (val) => /^[a-f0-9-]{8,}$/i.test(val) || val.startsWith('case-'),
+    { message: "Invalid case ID format" }
+);
+
+// File ID validation
+export const fileIdSchema = z.string().refine(
+    (val) => /^[a-f0-9-]{8,}$/i.test(val) || val.startsWith('demo-file-'),
+    { message: "Invalid file ID format" }
+);
 
 // File upload validation
 export const fileUploadSchema = z.object({
@@ -9,6 +27,10 @@ export const fileUploadSchema = z.object({
   mimeType: z.string(),
   size: z.number().min(0).max(50 * 1024 * 1024), // Max 50MB
 });
+
+// ============================================
+// Input Sanitization
+// ============================================
 
 // Sanitize input to prevent XSS
 export function sanitizeInput(input: string): string {
@@ -18,7 +40,24 @@ export function sanitizeInput(input: string): string {
     .replace(/[<>]/g, '') // Remove angle brackets
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+=/gi, '') // Remove event handlers
+    .replace(/data:/gi, '') // Remove data: protocol
     .trim();
+}
+
+/**
+ * Validate and sanitize a case ID
+ */
+export function validateCaseId(caseId: string | null | undefined): { valid: boolean; sanitized?: string; error?: string } {
+    if (!caseId) {
+        return { valid: false, error: 'Case ID is required' };
+    }
+    
+    const result = caseIdSchema.safeParse(caseId);
+    if (!result.success) {
+        return { valid: false, error: result.error.errors[0]?.message || 'Invalid case ID' };
+    }
+    
+    return { valid: true, sanitized: caseId };
 }
 
 // Validate and sanitize case code format
