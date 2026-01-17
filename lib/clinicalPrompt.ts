@@ -1,3 +1,8 @@
+/**
+ * Clinical Prompt Generator for AI Analysis
+ * Generates comprehensive prompts for medical case analysis
+ */
+
 export function generateClinicalPrompt(context: any): string {
     return `
 You are a senior clinical systems architect and expert medical analyst.
@@ -61,7 +66,15 @@ RULES & BEHAVIOR
      - Explain WHY the missing data matters
      - Explain WHAT decision would change once that data is available
 
-6. OUTPUT AUDIENCE
+6. RISK ASSESSMENT
+   - Assign a risk level (Critical, High, Moderate, Low) based on:
+     - Presence of red flags
+     - Number of abnormal findings
+     - Severity of conditions
+     - Medication interactions
+   - Provide a brief rationale for the risk assessment
+
+7. OUTPUT AUDIENCE
    - Output is for **doctors only**, not patients.
    - Use medical terminology and coding-friendly style.
    - Never include patient name in outputs. Use Case Code.
@@ -69,39 +82,178 @@ RULES & BEHAVIOR
 ====================================
 OUTPUT SCHEMA (JSON ONLY)
 ====================================
-Respond with a SINGLE VALID JSON object using this schema:
+Respond with a SINGLE VALID JSON object using this exact schema:
 {
-  "executiveSummary": "Brief overview of the case state",
-  "dataExtraction": { 
-     "demographics": "extracted text or object", 
-     "vitalSigns": "extracted text or object"
+  "riskLevel": "Critical|High|Moderate|Low",
+  "riskRationale": "Brief explanation of overall risk assessment",
+  "executiveSummary": "2-3 sentence overview of the case state and key findings",
+  "patientSnapshot": {
+    "age": "Age if found or 'Not provided'",
+    "sex": "M/F/Other or 'Not provided'",
+    "chiefComplaint": "Primary reason for visit or 'Not provided'",
+    "relevantHistory": ["List of key medical history items"]
   },
-  "abnormalFindings": ["List string"],
-  "systemCorrelations": ["List string (e.g. 'Low Ferritin correlating with fatigue')"],
-  "medicationImpacts": [ 
-    { "medication": "Name", "intended": "Intent", "possibleSideEffects": "Analysis", "nutrientDepletions": ["List"] } 
-  ],
-  "redFlags": ["List urgent issues"],
-  "providerDataGaps": [ 
-    { "missingItem": "Name", "whyItMatters": "Reason", "suggestedQuestion": "Doctor to Patient question" } 
-  ],
-  "telehealthQuestionSet": ["List specific questions"],
-  "diagnosticRecommendations": ["List tests"],
-  "therapeuticRecommendations": { 
-    "medications": ["Considerations"], 
-    "supplements": ["Suggestions"], 
-    "lifestyle": ["Suggestions"], 
-    "biohacking": ["Suggestions"] 
+  "vitalSigns": {
+    "bloodPressure": "Value or 'Not provided'",
+    "heartRate": "Value or 'Not provided'",
+    "temperature": "Value or 'Not provided'",
+    "respiratoryRate": "Value or 'Not provided'",
+    "oxygenSaturation": "Value or 'Not provided'",
+    "weight": "Value or 'Not provided'",
+    "height": "Value or 'Not provided'",
+    "bmi": "Value or 'Not provided'"
   },
-  "furtherStudyRecommendations": ["List"],
-  "followUpMetrics": ["List"],
-  "icd10": ["List codes if justified"],
-  "cpt": ["List codes or 'Insufficient'"],
-  "qualityCheck": { 
-    "assumptions": ["List"], 
-    "confidence": "High/Medium/Low",
-    "whatWouldChangeConclusion": "Comments"
+  "abnormalFindings": [
+    {
+      "finding": "Description of abnormal finding",
+      "severity": "Critical|High|Moderate|Low",
+      "source": "Where this was found (lab, imaging, history, etc.)"
+    }
+  ],
+  "systemCorrelations": [
+    {
+      "correlation": "Description of the correlation",
+      "systems": ["List of body systems involved"],
+      "clinicalSignificance": "Why this matters clinically"
+    }
+  ],
+  "medicationImpacts": [
+    {
+      "medication": "Drug name and dose if available",
+      "drugClass": "Pharmacological class",
+      "intended": "Intended therapeutic effect",
+      "possibleSideEffects": "Relevant side effects to monitor",
+      "nutrientDepletions": ["List of nutrients that may be depleted"],
+      "labInteractions": "How this drug may affect lab values",
+      "considerations": "Clinical considerations for the physician"
+    }
+  ],
+  "redFlags": [
+    {
+      "flag": "Description of urgent issue",
+      "urgency": "Immediate|24-48 hours|This week",
+      "recommendedAction": "Suggested immediate action"
+    }
+  ],
+  "providerDataGaps": [
+    {
+      "missingItem": "Name of missing data",
+      "whyItMatters": "Clinical importance",
+      "suggestedQuestion": "Question to ask patient",
+      "priority": "Essential|Important|Nice-to-have"
+    }
+  ],
+  "telehealthQuestionSet": [
+    {
+      "question": "Specific question for telehealth visit",
+      "purpose": "What this question helps assess",
+      "followUp": "Follow-up if answer is positive"
+    }
+  ],
+  "diagnosticRecommendations": [
+    {
+      "test": "Name of test or study",
+      "rationale": "Why this test is recommended",
+      "priority": "Urgent|Routine|Optional",
+      "expectedOutcome": "What finding would change management"
+    }
+  ],
+  "therapeuticRecommendations": {
+    "medications": [
+      {
+        "suggestion": "Medication consideration",
+        "rationale": "Why this may be helpful",
+        "cautions": "Things to watch for"
+      }
+    ],
+    "supplements": [
+      {
+        "supplement": "Name and suggested dose",
+        "rationale": "Why recommended",
+        "duration": "How long to take"
+      }
+    ],
+    "lifestyle": [
+      {
+        "recommendation": "Lifestyle change",
+        "rationale": "Expected benefit",
+        "implementation": "How to implement"
+      }
+    ],
+    "biohacking": [
+      {
+        "intervention": "Advanced optimization suggestion",
+        "rationale": "Evidence or reasoning",
+        "monitoring": "How to track effectiveness"
+      }
+    ]
+  },
+  "followUpPlan": {
+    "timing": "When to follow up",
+    "metrics": ["List of values/symptoms to track"],
+    "goals": ["Specific measurable goals"],
+    "warningSignsForPatient": ["When patient should seek immediate care"]
+  },
+  "billingCodes": {
+    "icd10": [
+      {
+        "code": "ICD-10 code",
+        "description": "Diagnosis description",
+        "supportingEvidence": "What in the record supports this"
+      }
+    ],
+    "cpt": [
+      {
+        "code": "CPT code",
+        "description": "Procedure/service description",
+        "justification": "Medical necessity justification"
+      }
+    ]
+  },
+  "qualityCheck": {
+    "confidence": "High|Medium|Low",
+    "assumptions": ["List of assumptions made"],
+    "limitations": ["Data limitations that affected analysis"],
+    "whatWouldChangeConclusion": "What additional data would significantly change recommendations"
   }
+}
+`;
+}
+
+/**
+ * Generate a simplified prompt for patient-friendly summaries
+ */
+export function generatePatientSummaryPrompt(analysisJson: any): string {
+    return `
+You are a medical communication specialist. Convert this clinical analysis into a patient-friendly summary.
+
+CLINICAL ANALYSIS:
+${JSON.stringify(analysisJson, null, 2)}
+
+RULES:
+1. Use simple, non-medical language (6th grade reading level)
+2. Avoid alarming language while being honest
+3. Focus on actionable items the patient can understand
+4. Include encouragement and positive framing where appropriate
+5. Do NOT include billing codes, specific drug interactions, or technical medical terms
+
+OUTPUT SCHEMA (JSON ONLY):
+{
+  "greeting": "Personalized opening",
+  "overallStatus": "Simple summary of health status",
+  "keyFindings": ["List of findings in simple language"],
+  "whatThisMeans": "Plain language explanation",
+  "actionItems": [
+    {
+      "action": "What to do",
+      "why": "Simple explanation of why",
+      "when": "Timeline"
+    }
+  ],
+  "questionsToAsk": ["Questions patient might want to ask their doctor"],
+  "lifestyleTips": ["Practical daily tips"],
+  "encouragement": "Positive, supportive closing message",
+  "whenToSeekHelp": ["Warning signs that need immediate attention"]
 }
 `;
 }
