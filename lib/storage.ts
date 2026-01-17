@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Saves a file to local storage.
@@ -26,7 +27,7 @@ export async function saveFileLocal(file: File, caseId: string): Promise<{ path:
     const fileName = file.name;
     // Sanitize filename to prevent path traversal and other issues
     const safeName = fileName.replace(/[^a-z0-9._-]/gi, '_').substring(0, 100);
-    const uniqueName = `${Date.now()}-${safeName}`;
+    const uniqueName = `${uuidv4()}-${safeName}`;
     const filePath = path.join(uploadDir, uniqueName);
 
     try {
