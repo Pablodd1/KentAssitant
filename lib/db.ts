@@ -5,7 +5,17 @@ import { PrismaClient } from '@prisma/client'
  * Optimized for serverless environments (Vercel, AWS Lambda)
  */
 
+// Support multiple database URL environment variable names
+// Neon uses POSTGRES_URL, standard is DATABASE_URL
+const getDatabaseUrl = (): string | undefined => {
+    return process.env.DATABASE_URL 
+        || process.env.POSTGRES_URL 
+        || process.env.POSTGRES_PRISMA_URL
+        || process.env.DATABASE_URL_UNPOOLED;
+}
+
 const prismaClientSingleton = () => {
+    const dbUrl = getDatabaseUrl();
     return new PrismaClient({
         log: process.env.NODE_ENV === 'development' 
             ? ['error', 'warn'] // Reduced logging for performance
@@ -13,7 +23,7 @@ const prismaClientSingleton = () => {
         // Connection pool settings for serverless
         datasources: {
             db: {
-                url: process.env.DATABASE_URL
+                url: dbUrl
             }
         }
     })
@@ -26,11 +36,12 @@ const globalForPrisma = globalThis as unknown as {
     dbConnected: boolean
 }
 
-// Only create Prisma client if DATABASE_URL is set
+// Only create Prisma client if a database URL is set
 const createPrismaClient = (): PrismaClient | null => {
-    if (!process.env.DATABASE_URL) {
+    const dbUrl = getDatabaseUrl();
+    if (!dbUrl) {
         if (process.env.NODE_ENV !== 'production') {
-            console.warn('DATABASE_URL not set - running in demo mode');
+            console.warn('No database URL set (DATABASE_URL, POSTGRES_URL, etc.) - running in demo mode');
         }
         return null;
     }

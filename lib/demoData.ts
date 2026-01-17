@@ -481,4 +481,10 @@ export function generateDemoCaseCode(): string {
     return `AWM-${year}-${count.toString().padStart(4, '0')}`;
 }
 
-export const isDemoMode = !process.env.DATABASE_URL;
+// Check for any database URL environment variable (supports Neon, Vercel Postgres, etc.)
+export const isDemoMode = !(
+    process.env.DATABASE_URL || 
+    process.env.POSTGRES_URL || 
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.DATABASE_URL_UNPOOLED
+);

@@ -13,8 +13,9 @@ interface LLMConfig {
 }
 
 function getLLMConfig(): LLMConfig {
-    // Check for Gemini API key first (primary)
-    const geminiKey = process.env.GEMINI_API_KEY;
+    // Check for Google/Gemini API key first (primary)
+    // Supports multiple common naming conventions
+    const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
     if (geminiKey) {
         return {
             provider: 'gemini',
@@ -33,7 +34,7 @@ function getLLMConfig(): LLMConfig {
         };
     }
 
-    throw new Error("No LLM API key configured. Set GEMINI_API_KEY or OPENAI_API_KEY in environment variables.");
+    throw new Error("No LLM API key configured. Set GOOGLE_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in environment variables.");
 }
 
 async function callGeminiAPI(prompt: string, apiKey: string, model: string): Promise<string> {
