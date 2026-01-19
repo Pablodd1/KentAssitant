@@ -157,7 +157,7 @@ describe('Demo Data Management', () => {
         it('should generate case IDs with correct format', () => {
             const id1 = generateDemoCaseId()
             
-            expect(id1).toMatch(/^case-\d+$/)
+            expect(id1).toMatch(/^case-\d+-[a-z0-9]+$/)
             expect(id1.startsWith('case-')).toBe(true)
         })
 
