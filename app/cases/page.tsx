@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Loader2, ArrowRight, FileText } from 'lucide-react';
 
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
@@ -60,8 +61,9 @@ export default function CasesPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto py-10 text-center">
-                <p className="text-xl">Loading cases...</p>
+            <div className="container mx-auto py-10 text-center flex flex-col items-center justify-center min-h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+                <p className="text-xl text-gray-500">Loading cases...</p>
             </div>
         );
     }
@@ -85,26 +87,29 @@ export default function CasesPage() {
                 <button
                     onClick={createCase}
                     disabled={creating}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Create new patient case"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
+                    {creating ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                     {creating ? 'Creating...' : '+ New Case'}
                 </button>
             </div>
             
             <div className="grid gap-4">
                 {cases.length === 0 ? (
-                    <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                    <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center">
+                        <FileText className="h-12 w-12 text-gray-300 mb-4" />
                         <p className="text-gray-500 text-lg mb-4">No patient cases yet</p>
                         <button
                             onClick={createCase}
-                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
                         >
                             Create First Case
                         </button>
                     </div>
                 ) : (
                     cases.map((c) => (
-                        <div key={c.id} className="border p-6 rounded-lg flex justify-between items-center shadow-sm hover:shadow-md transition-shadow bg-white">
+                        <div key={c.id} className="border p-6 rounded-lg flex justify-between items-center shadow-sm hover:shadow-md transition-shadow bg-white group">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                     <h2 className="font-bold text-xl">{c.caseCode}</h2>
@@ -121,9 +126,10 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
-                                className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                                aria-label={'Open case ' + c.caseCode}
+                                className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium flex items-center gap-2 group/btn"
                             >
-                                Open Case →
+                                Open Case <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                             </Link>
                         </div>
                     ))
