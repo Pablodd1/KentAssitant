@@ -77,22 +77,39 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Demo mode - return mock file records
+        // Demo mode - add files to demo case
         if (isDemoMode) {
-            const mockFiles = files.map((file, index) => ({
-                id: `demo-file-${Date.now()}-${index}`,
-                caseId: caseId,
-                filename: file.name,
-                mimeType: file.type,
-                size: file.size,
-                storagePath: `/tmp/demo/${file.name}`,
-                status: 'READY',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            }));
+            const { addFileToDemoCase, getDemoCase } = await import('@/lib/demoData');
+            
+            // Ensure the case exists
+            const demoCase = getDemoCase(caseId);
+            if (!demoCase) {
+                return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+            }
+            
+            const mockFiles = [];
+            for (let index = 0; index < files.length; index++) {
+                const file = files[index];
+                const mockFile = {
+                    id: `demo-file-${Date.now()}-${index}`,
+                    caseId: caseId,
+                    filename: file.name,
+                    mimeType: file.type,
+                    size: file.size,
+                    storagePath: `/tmp/demo/${file.name}`,
+                    status: 'READY',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // Add file to the demo case
+                addFileToDemoCase(caseId, mockFile);
+                mockFiles.push(mockFile);
+            }
+            
             return NextResponse.json({ 
                 files: mockFiles,
-                message: 'Demo mode - files simulated (not persisted)'
+                message: 'Demo mode - files added to case'
             });
         }
 

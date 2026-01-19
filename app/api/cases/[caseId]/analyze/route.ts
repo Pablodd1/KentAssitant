@@ -44,9 +44,50 @@ export async function POST(req: NextRequest, routeContext: RouteContext) {
     
     // Demo mode handling
     if (isDemoMode) {
-        // Update case status to COMPLETED
+        const { getDemoCase, getDemoAnalysis } = await import('@/lib/demoData');
+        const demoCase = getDemoCase(caseId);
+        
+        // If case has uploaded files and we have an API key, try real analysis
+        if (demoCase && demoCase.files && demoCase.files.length > 0) {
+            const llmInfo = getLLMProviderInfo();
+            
+            // If we have a real LLM configured, use it
+            if (llmInfo.provider !== 'none') {
+                try {
+                    // Build context from demo case files
+                    const fileContents = demoCase.files.map(f => 
+                        `--- File: ${f.filename} (${f.mimeType}) ---\nFile uploaded and ready for analysis.`
+                    ).join('\n\n');
+                    
+                    const context = {
+                        caseCode: demoCase.caseCode,
+                        rawDocuments: fileContents,
+                        activeTranscripts: '',
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    const analysis = await runClinicalAnalysis(context);
+                    updateDemoCase(caseId, { status: 'COMPLETED', updatedAt: new Date().toISOString() });
+                    
+                    logAuditEvent({
+                        action: 'ANALYZE_CASE',
+                        caseId,
+                        resourceType: 'case',
+                        resourceId: caseId,
+                        ipAddress: clientIp,
+                        userAgent,
+                        status: 'success'
+                    });
+                    
+                    return NextResponse.json(analysis);
+                } catch (llmError) {
+                    console.log('LLM analysis failed in demo mode, falling back to demo data:', llmError);
+                }
+            }
+        }
+        
+        // Fallback to pre-made demo analysis
         updateDemoCase(caseId, { status: 'COMPLETED', updatedAt: new Date().toISOString() });
-        // Return demo results based on caseId
         const analysis = getDemoAnalysis(caseId);
         return NextResponse.json(analysis);
     }
