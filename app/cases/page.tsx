@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowRight, Plus, Loader2 } from 'lucide-react';
 
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
@@ -85,9 +86,20 @@ export default function CasesPage() {
                 <button
                     onClick={createCase}
                     disabled={creating}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-busy={creating}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                    {creating ? 'Creating...' : '+ New Case'}
+                    {creating ? (
+                        <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Creating...
+                        </>
+                    ) : (
+                        <>
+                            <Plus className="w-5 h-5" />
+                            New Case
+                        </>
+                    )}
                 </button>
             </div>
             
@@ -97,9 +109,18 @@ export default function CasesPage() {
                         <p className="text-gray-500 text-lg mb-4">No patient cases yet</p>
                         <button
                             onClick={createCase}
-                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                            disabled={creating}
+                            aria-busy={creating}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
                         >
-                            Create First Case
+                            {creating ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                'Create First Case'
+                            )}
                         </button>
                     </div>
                 ) : (
@@ -121,9 +142,11 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
-                                className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                                aria-label={'Open case ' + c.caseCode}
+                                className="group bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium flex items-center gap-2"
                             >
-                                Open Case →
+                                Open Case
+                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                             </Link>
                         </div>
                     ))
