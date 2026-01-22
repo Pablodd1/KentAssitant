@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
@@ -60,8 +61,9 @@ export default function CasesPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto py-10 text-center">
-                <p className="text-xl">Loading cases...</p>
+            <div className="container mx-auto py-10 flex flex-col items-center justify-center min-h-[50vh]">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
+                <p className="text-xl text-gray-500 animate-pulse">Loading cases...</p>
             </div>
         );
     }
@@ -85,9 +87,16 @@ export default function CasesPage() {
                 <button
                     onClick={createCase}
                     disabled={creating}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
-                    {creating ? 'Creating...' : '+ New Case'}
+                    {creating ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            Creating...
+                        </>
+                    ) : (
+                        '+ New Case'
+                    )}
                 </button>
             </div>
             
@@ -121,9 +130,11 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
-                                className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                                className="group bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium flex items-center"
+                                aria-label={`Open case ${c.caseCode}`}
                             >
-                                Open Case →
+                                Open Case
+                                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                             </Link>
                         </div>
                     ))
