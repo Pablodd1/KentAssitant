@@ -85,6 +85,8 @@ export default function CasesPage() {
                 <button
                     onClick={createCase}
                     disabled={creating}
+                    aria-busy={creating}
+                    aria-label="Create new case"
                     className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {creating ? 'Creating...' : '+ New Case'}
@@ -97,6 +99,8 @@ export default function CasesPage() {
                         <p className="text-gray-500 text-lg mb-4">No patient cases yet</p>
                         <button
                             onClick={createCase}
+                            aria-busy={creating}
+                            aria-label="Create first case"
                             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
                         >
                             Create First Case
@@ -121,6 +125,7 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
+                                aria-label={`Open case ${c.caseCode}`}
                                 className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
                             >
                                 Open Case →
