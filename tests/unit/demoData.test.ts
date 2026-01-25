@@ -157,14 +157,12 @@ describe('Demo Data Management', () => {
         it('should generate case IDs with correct format', () => {
             const id1 = generateDemoCaseId()
             
-            expect(id1).toMatch(/^case-\d+$/)
+            expect(id1).toMatch(/^case-\d+-[a-z0-9]+$/)
             expect(id1.startsWith('case-')).toBe(true)
         })
 
-        it('should generate unique case IDs with delay', async () => {
+        it('should generate unique case IDs', () => {
             const id1 = generateDemoCaseId()
-            // Wait 1ms to ensure different timestamp
-            await new Promise(resolve => setTimeout(resolve, 1))
             const id2 = generateDemoCaseId()
             
             expect(id1).not.toBe(id2)

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
@@ -121,9 +122,11 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
-                                className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                                aria-label={'Open case ' + c.caseCode}
+                                className="group bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium flex items-center gap-2"
                             >
-                                Open Case →
+                                Open Case
+                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                             </Link>
                         </div>
                     ))
