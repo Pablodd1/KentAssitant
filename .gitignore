@@ -1,9 +1,42 @@
-node_modules
-.next
+# Ignore node_modules
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build outputs
+dist/
+build/
+
+# Environment files
 .env
 .env.local
-.DS_Store
-dist
-out
-test-results/
-playwright-report/
+.env.development.local
+.env.test.local
+.env.production.local
+
+# User data
+user-data/
+patient-data/
