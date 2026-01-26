@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
@@ -60,8 +61,9 @@ export default function CasesPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto py-10 text-center">
-                <p className="text-xl">Loading cases...</p>
+            <div className="flex flex-col items-center justify-center min-h-[50vh]">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
+                <p className="text-xl font-medium text-gray-600 animate-pulse">Loading cases...</p>
             </div>
         );
     }
@@ -121,9 +123,11 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
-                                className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                                aria-label={'Open case ' + c.caseCode}
+                                className="group bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium flex items-center gap-2"
                             >
-                                Open Case →
+                                <span>Open Case</span>
+                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                             </Link>
                         </div>
                     ))
