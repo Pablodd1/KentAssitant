@@ -471,7 +471,7 @@ export function addFileToDemoCase(caseId: string, file: DemoFile): boolean {
 }
 
 export function generateDemoCaseId(): string {
-    return `case-${Date.now()}`;
+    return `case-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 }
 
 export function generateDemoCaseCode(): string {

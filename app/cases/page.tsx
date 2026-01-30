@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 export default function CasesPage() {
     const [cases, setCases] = useState<any[]>([]);
@@ -85,9 +86,9 @@ export default function CasesPage() {
                 <button
                     onClick={createCase}
                     disabled={creating}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                    {creating ? 'Creating...' : '+ New Case'}
+                    {creating ? <><Loader2 className="animate-spin h-5 w-5" /> Creating...</> : '+ New Case'}
                 </button>
             </div>
             
@@ -97,9 +98,10 @@ export default function CasesPage() {
                         <p className="text-gray-500 text-lg mb-4">No patient cases yet</p>
                         <button
                             onClick={createCase}
-                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                            disabled={creating}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
-                            Create First Case
+                            {creating ? <><Loader2 className="animate-spin h-4 w-4" /> Creating...</> : 'Create First Case'}
                         </button>
                     </div>
                 ) : (
@@ -121,9 +123,10 @@ export default function CasesPage() {
                             </div>
                             <Link 
                                 href={`/case/${c.id}/upload`}
-                                className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                                aria-label={`Open case ${c.caseCode}`}
+                                className="group bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition-colors font-medium inline-flex items-center"
                             >
-                                Open Case →
+                                Open Case <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                             </Link>
                         </div>
                     ))
